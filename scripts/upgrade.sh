@@ -34,9 +34,11 @@ if [ -n "$RESTARTED" ]; then
 else
   echo "      No Hermes CLI found; no client restarted automatically."
 fi
-echo "      Manual step: restart any other connected MCP clients"
-echo "      (Claude Code, Codex, OpenClaw, opencode, WorkBuddy, ...) so they"
-echo "      load the new server build. Their configs do not change."
+echo "      Other connected MCP clients:"
+echo "        - OpenClaw:   run 'openclaw mcp reload' (or restart its gateway)"
+echo "        - Claude Code / Codex / opencode / WorkBuddy: restart the client"
+echo "          or its session so it spawns the new server build."
+echo "      Their configs do not change."
 
 XPI="packages/tab_management_agent_bridge_for_firefox-${VERSION}.xpi"
 if [ ! -f "$XPI" ]; then

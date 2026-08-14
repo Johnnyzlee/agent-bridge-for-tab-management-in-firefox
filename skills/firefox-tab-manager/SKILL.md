@@ -86,7 +86,7 @@ When the user asks to upgrade ("升级 firefox-tabs", "update the bridge"):
 
 1. Run `bash scripts/upgrade.sh` from the repository root (pull, rebuild, restart Hermes when present, open the newest signed XPI).
 2. Ask the user to confirm the Firefox install prompt — this step cannot be automated.
-3. Tell the user to restart other connected MCP clients (Claude Code, Codex, OpenClaw, opencode, WorkBuddy) so they load the new server build.
+3. Tell the user how to refresh the other connected MCP clients so they load the new server build: OpenClaw via `openclaw mcp reload` (or restart its gateway); Claude Code, Codex, opencode, and WorkBuddy by restarting the client or its session. Their configs do not change.
 4. Run `npm run doctor` and confirm the extension options page shows "Auto-detected (Native Messaging)" and "Connected".
 
 Do not claim the upgrade finished while any client or the extension still runs the old build.

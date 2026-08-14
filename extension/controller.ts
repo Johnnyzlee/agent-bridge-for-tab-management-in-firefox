@@ -416,6 +416,12 @@ export class FirefoxTabController {
     changed: boolean;
     closedTabs: PublicTab[];
   }> {
+    if (!params.confirmClose) {
+      throw new FirefoxTabsError(
+        "CLOSE_REQUIRES_CONFIRMATION",
+        "Closing tabs is irreversible. Retry with confirmClose=true only after the user explicitly confirmed the exact tab IDs.",
+      );
+    }
     if (params.tabIds.length === 0) {
       throw new FirefoxTabsError("INVALID_TAB_IDS", "tabIds must contain at least one tab ID.");
     }
@@ -452,6 +458,12 @@ export class FirefoxTabController {
     closedTabs: PublicTab[];
     removedGroup: boolean;
   }> {
+    if (!params.confirmClose) {
+      throw new FirefoxTabsError(
+        "CLOSE_REQUIRES_CONFIRMATION",
+        "Closing every tab of a group is irreversible. Retry with confirmClose=true only after the user explicitly confirmed the group title.",
+      );
+    }
     const group = await this.findGroupByTitle(params.groupTitle, params.windowId);
     const windowTabs = await this.browserApi.tabs.query({ windowId: group.windowId });
     const groupTabs = windowTabs.filter((tab) => tab.groupId === group.id);

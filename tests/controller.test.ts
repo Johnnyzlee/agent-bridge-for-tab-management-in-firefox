@@ -437,11 +437,23 @@ describe("FirefoxTabController", () => {
     expect(browser.moveCalls).toHaveLength(0);
   });
 
+  it("requires confirmClose before closing tabs", async () => {
+    const browser = createBrowser([targetTab], []);
+    const controller = new FirefoxTabController(browser);
+    await expect(controller.closeTabs({ tabIds: [10] })).rejects.toMatchObject({
+      code: "CLOSE_REQUIRES_CONFIRMATION",
+    });
+    await expect(controller.closeTabGroup({ groupTitle: "Browsering" })).rejects.toMatchObject({
+      code: "CLOSE_REQUIRES_CONFIRMATION",
+    });
+    expect(browser.removeCalls).toHaveLength(0);
+  });
+
   it("closes a batch of tabs by id and verifies they are gone", async () => {
     const secondTab: BrowserTab = { ...targetTab, id: 11, index: 2 };
     const browser = createBrowser([targetTab, secondTab], []);
     const controller = new FirefoxTabController(browser);
-    const result = await controller.closeTabs({ tabIds: [10, 11] });
+    const result = await controller.closeTabs({ tabIds: [10, 11], confirmClose: true });
 
     expect(result.changed).toBe(true);
     expect(result.closedTabs.map((tab) => tab.id)).toEqual([10, 11]);
@@ -451,9 +463,9 @@ describe("FirefoxTabController", () => {
   it("rejects closing unknown, empty, or duplicate tab id batches", async () => {
     const browser = createBrowser([targetTab], []);
     const controller = new FirefoxTabController(browser);
-    await expect(controller.closeTabs({ tabIds: [999] })).rejects.toMatchObject({ code: "TAB_NOT_FOUND" });
-    await expect(controller.closeTabs({ tabIds: [] })).rejects.toMatchObject({ code: "INVALID_TAB_IDS" });
-    await expect(controller.closeTabs({ tabIds: [10, 10] })).rejects.toMatchObject({ code: "INVALID_TAB_IDS" });
+    await expect(controller.closeTabs({ tabIds: [999], confirmClose: true })).rejects.toMatchObject({ code: "TAB_NOT_FOUND" });
+    await expect(controller.closeTabs({ tabIds: [], confirmClose: true })).rejects.toMatchObject({ code: "INVALID_TAB_IDS" });
+    await expect(controller.closeTabs({ tabIds: [10, 10], confirmClose: true })).rejects.toMatchObject({ code: "INVALID_TAB_IDS" });
     expect(browser.removeCalls).toHaveLength(0);
   });
 
@@ -462,7 +474,7 @@ describe("FirefoxTabController", () => {
     const secondTab: BrowserTab = { ...targetTab, id: 11, index: 2, groupId: 42 };
     const browser = createBrowser([groupedTab, secondTab], [browsingGroup]);
     const controller = new FirefoxTabController(browser);
-    const result = await controller.closeTabGroup({ groupTitle: "Browsering" });
+    const result = await controller.closeTabGroup({ groupTitle: "Browsering", confirmClose: true });
 
     expect(result.removedGroup).toBe(true);
     expect(result.closedTabs.map((tab) => tab.id)).toEqual([10, 11]);
@@ -473,7 +485,7 @@ describe("FirefoxTabController", () => {
   it("removes an empty group when closing it", async () => {
     const browser = createBrowser([targetTab], [browsingGroup]);
     const controller = new FirefoxTabController(browser);
-    const result = await controller.closeTabGroup({ groupTitle: "Browsering" });
+    const result = await controller.closeTabGroup({ groupTitle: "Browsering", confirmClose: true });
 
     expect(result.closedTabs).toHaveLength(0);
     expect(result.removedGroup).toBe(true);

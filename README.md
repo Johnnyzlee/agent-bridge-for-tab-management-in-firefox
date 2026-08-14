@@ -85,7 +85,7 @@ Make it a habit: throughout the day, send article links, docs, and reference pag
 
 ### 1. Install the extension
 
-Download `tab_management_agent_bridge_for_firefox-0.5.7.xpi` from the [latest release](https://github.com/Johnnyzlee/agent-bridge-for-tab-management-in-firefox/releases) and open it with Firefox.
+Download `tab_management_agent_bridge_for_firefox-0.5.8.xpi` from the [latest release](https://github.com/Johnnyzlee/agent-bridge-for-tab-management-in-firefox/releases) and open it with Firefox.
 
 ### 2. Run setup once
 

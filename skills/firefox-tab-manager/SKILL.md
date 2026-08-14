@@ -76,6 +76,7 @@ Window identity matters: groups and titles are per-window.
 | `TABS_SPAN_WINDOWS` | Use per-window operations or an explicit `windowId`. |
 | `PINNED_TAB_REQUIRES_CONFIRMATION` | Explain that Firefox will unpin; set `allowUnpin: true` only after explicit confirmation. |
 | `TAB_NOT_FOUND` | Re-list tabs; the tab may have been closed. |
+| `CLOSE_REQUIRES_CONFIRMATION` | Closing is irreversible — pass `confirmClose: true` only after the user explicitly confirmed the exact tabs/group. |
 | `TAB_LOAD_TIMEOUT` | Report that the page did not finish loading in time; offer to wait longer or check the tab. |
 | `EXTENSION_NOT_CONNECTED` | Do not claim anything changed; ask the user to check the extension options and run `npm run setup`. |
 | `VERIFICATION_FAILED` | Report failure even if the operation itself returned. |
@@ -96,4 +97,4 @@ Do not claim the upgrade finished while any client or the extension still runs t
 - Open only explicit or clearly user-approved `http://`/`https://` URLs.
 - Never read page bodies or execute arbitrary page JavaScript.
 - Never guess between matches; never create a duplicate group; never cache group IDs across sessions — resolve by current window and title.
-- Confirm before closing, unpinning, or muting unless the user's request is explicit.
+- Never close tabs or groups without the user's explicit confirmation; pass `confirmClose: true` only then. Unpinning likewise needs explicit confirmation (`allowUnpin`).

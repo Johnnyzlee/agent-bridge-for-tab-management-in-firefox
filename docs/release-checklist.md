@@ -1,6 +1,13 @@
 # Release Checklist
 
-## Current: v0.5.7 (audible reporting)
+## Current: v0.5.8 (close confirmation, broker hardening)
+
+- [x] `confirmClose: true` required for `close_firefox_tabs` / `close_firefox_tab_group` (schema + controller).
+- [x] Broker tab-completion cache capped at 500 with eviction; dead code removed; `tab-events.ts` extracted.
+- [x] Tests (129).
+- [ ] Submit v0.5.8 as an AMO unlisted version and verify the signed XPI.
+
+## Released: v0.5.7 (audible reporting)
 
 - [x] Add `audible` to tab data (`list_firefox_tabs`, `get_active_firefox_tab`) so agents can find what is playing.
 - [ ] Submit v0.5.7 as an AMO unlisted version and verify the signed XPI.

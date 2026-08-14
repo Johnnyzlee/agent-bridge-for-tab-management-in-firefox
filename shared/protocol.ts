@@ -121,11 +121,13 @@ export interface SetTabGroupColorParams {
 
 export interface CloseTabsParams {
   tabIds: number[];
+  confirmClose?: boolean;
 }
 
 export interface CloseTabGroupParams {
   groupTitle: string;
   windowId?: number;
+  confirmClose?: boolean;
 }
 
 export interface MergeTabGroupsParams {

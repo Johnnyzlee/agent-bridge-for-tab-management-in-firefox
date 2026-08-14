@@ -4,10 +4,13 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
-## [0.5.9.1] - 2026-08-15
+## [0.5.10] - 2026-08-15
 
 - Add a `completedAt` timestamp to tab-completion records and every `wait_for_firefox_tab` answer, and document the cache semantics (a cached hit means the tab finished loading at some point; a navigating tab needs a fresh event).
-- Server-only change; the extension is unchanged and does not need re-signing.
+- Fix the stale `search_firefox_tabs` reference in the `close_firefox_tabs` tool description (the tool no longer exists).
+- Reject pending `wait_for_firefox_tab` requests immediately with `EXTENSION_DISCONNECTED` when the Firefox extension disconnects, instead of letting them hang until the timeout.
+- Validate tab IDs before the `confirmClose` check in `close_firefox_tabs` so malformed calls report the invalid input, not the missing confirmation.
+- Rebuild and re-sign the extension as v0.5.10 through the AMO unlisted channel.
 
 ## [0.5.9] - 2026-08-15
 

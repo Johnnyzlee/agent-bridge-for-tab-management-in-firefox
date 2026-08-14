@@ -24,11 +24,13 @@
 
 - [x] Preserve the AMO-signed Gecko add-on ID `firefox-tabs-mcp@local.invalid` for all future updates.
 - [x] Pass Mozilla review and obtain the production-signed v0.3.0 XPI.
+- [x] Prepare the branded v0.3.1 update under the same Gecko ID.
 - [ ] Approve a final icon and add the required icon sizes to the manifest.
 - [ ] Capture clean options-page and tab-group screenshots.
 - [x] Publish the repository so the privacy policy, support page, source, and build instructions have stable URLs.
 - [ ] Recheck the manifest permissions and `browsingActivity` declaration against the current AMO form.
-- [ ] Submit a future branded update under the same Gecko ID.
+- [ ] Submit v0.3.1 from the existing AMO add-on page.
+- [ ] Download and verify the production-signed v0.3.1 XPI.
 - [ ] Test the signed build in a fresh Firefox profile before each announcement.
 
 ## Future distribution improvements

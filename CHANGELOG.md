@@ -4,10 +4,14 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [0.3.1] - 2026-08-15
+
 - Prepare public repository documentation, automation, and AMO review materials.
 - Rename the umbrella project to Agent Bridge for Tab Management in Firefox and the add-on to Tab Management Agent Bridge for Firefox.
 - Present the MCP server, Firefox extension, and Agent Skill as three explicit top-level components.
 - Add a pre-AMO quick-start flow that builds locally and generates protected MCP configuration helpers.
+- Add a focused reading-queue workflow for collecting webpages into a dedicated Firefox tab group through an Agent.
+- Preserve the production Gecko ID so v0.3.1 upgrades the Mozilla-signed v0.3.0 installation in place.
 
 ## [0.3.0] - 2026-08-15
 

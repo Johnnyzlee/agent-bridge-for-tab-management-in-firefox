@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [0.5.8] - 2026-08-15
+
+- Require explicit `confirmClose: true` for `close_firefox_tabs` and `close_firefox_tab_group` (enforced in the tool schema and the controller) so irreversible closes cannot happen by accident.
+- Cap the broker's tab-completion cache at 500 entries with oldest-first eviction, fixing unbounded memory growth; remove leftover dead code.
+- Extract the event-driven wait logic (`wait_tab`) into a dedicated `mcp-server/tab-events.ts` module to keep the broker file focused.
+- Rebuild and re-sign the extension as v0.5.8 through the AMO unlisted channel.
+
 ## [0.5.7] - 2026-08-15
 
 - Report the `audible` state of every tab (`list_firefox_tabs`, `get_active_firefox_tab`) so agents can find which tabs are playing audio.

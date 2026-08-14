@@ -51,7 +51,7 @@ async function invoke(bridge: BridgeLike, method: Parameters<BridgeLike["call"]>
 
 export function createMcpServer(bridge: BridgeLike): McpServer {
   const server = new McpServer(
-    { name: "firefox-tab-management-agent-mcp", version: "0.5.7" },
+    { name: "firefox-tab-management-agent-mcp", version: "0.5.8" },
     {
       instructions:
         "Open only explicit http/https URLs. Use exact URL or title matching and retry ambiguous matches with tabId. Create groups only when the user requested a new group; use the move tool if an exact group already exists. Never set allowUnpin=true without explicit user confirmation. Every write tool verifies the resulting Firefox state.",
@@ -371,6 +371,9 @@ export function createMcpServer(bridge: BridgeLike): McpServer {
           .array(z.number().int().positive())
           .min(1)
           .describe("Unique tab IDs returned by list_firefox_tabs or search_firefox_tabs."),
+        confirmClose: z
+          .literal(true)
+          .describe("Must be explicitly true; closing tabs is irreversible."),
       }),
     },
     async (params) => invoke(bridge, "close_tabs", params),
@@ -389,6 +392,9 @@ export function createMcpServer(bridge: BridgeLike): McpServer {
           .positive()
           .optional()
           .describe("Window to look in; required when the title exists in more than one window."),
+        confirmClose: z
+          .literal(true)
+          .describe("Must be explicitly true; closing a whole group is irreversible."),
       }),
     },
     async (params) => invoke(bridge, "close_tab_group", params),

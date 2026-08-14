@@ -4,6 +4,7 @@ import { afterEach, describe, expect, it } from "vitest";
 import { Broker, type BrokerOptions } from "../mcp-server/broker.js";
 import { BrokerClient } from "../mcp-server/client.js";
 import { BRIDGE_PROTOCOL_VERSION, type BridgeRequest } from "../shared/protocol.js";
+import { TabEventTracker } from "../mcp-server/tab-events.js";
 
 const token = "test-token-with-at-least-32-characters";
 const brokers: Broker[] = [];
@@ -304,6 +305,17 @@ describe("Broker tab-complete events", () => {
       }),
     );
     await expect(pending).resolves.toMatchObject({ tabId: 55 });
+  });
+
+  it("evicts the oldest completion record beyond the cache cap", async () => {
+    const tracker = new TabEventTracker({ maxCompletedTabs: 2 });
+    tracker.handleEvent({ event: "tab_complete", data: { tabId: 1, url: "https://a.example/", title: "A" } });
+    tracker.handleEvent({ event: "tab_complete", data: { tabId: 2, url: "https://b.example/", title: "B" } });
+    tracker.handleEvent({ event: "tab_complete", data: { tabId: 3, url: "https://c.example/", title: "C" } });
+    await expect(tracker.waitForTab({ tabId: 1, timeoutMs: 100 })).rejects.toMatchObject({
+      code: "TAB_LOAD_TIMEOUT",
+    });
+    await expect(tracker.waitForTab({ tabId: 3, timeoutMs: 100 })).resolves.toMatchObject({ tabId: 3, url: "https://c.example/" });
   });
 
   it("cleans up waiters when the waiting agent disconnects", async () => {

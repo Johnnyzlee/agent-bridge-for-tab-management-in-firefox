@@ -2,12 +2,22 @@
 
 Validated locally on 15 August 2026 with Node.js 22.17.0 and npm 10.9.2. Historical validation records for earlier releases are archived in the release notes; this file tracks the current development cycle.
 
+## v0.5.8 development (close confirmation, broker hardening) — work in progress
+
+| Check | Result |
+|---|---|
+| TypeScript `tsc --noEmit` | Passed |
+| Vitest | 129 tests (adds `CLOSE_REQUIRES_CONFIRMATION` guards and cache-cap eviction) |
+| Production build + web-ext lint | Passed |
+| Live Firefox | To be re-run after signing |
+
 ## v0.5.7 (released)
 
 | Check | Result |
 |---|---|
 | TypeScript `tsc --noEmit` | Passed |
 | Vitest | 127 tests across 6 files (includes audible-state reporting) |
+| Cache cap | 500 entries with oldest-first eviction in `tab-events.ts` |
 | Production build + web-ext lint | Passed |
 | Live Firefox | `audible` reporting verified against the real session; 25 tools confirmed |
 

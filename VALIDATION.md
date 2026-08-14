@@ -2,6 +2,15 @@
 
 Validated locally on 15 August 2026 with Node.js 22.17.0 and npm 10.9.2.
 
+## v0.5.6 fix release (real-browser findings)
+
+| Check | Result |
+|---|---|
+| Real Firefox | `wait_for_firefox_tab` event-driven wait works (instant on completion); `get_active_firefox_tab`, `list_firefox_windows`, `open`/`close`/`restore` verified live |
+| Real Firefox finding 1 | `set_firefox_tab_muted` is silently ignored by Firefox without a user gesture → dedicated `MUTE_REQUIRES_USER_GESTURE` error |
+| Real Firefox finding 2 | `pin`/`unpin`/`duplicate` selector dispatch bug (INVALID_SELECTOR) found in live testing → fixed and re-signed as v0.5.6 |
+| Vitest | 128 tests (adds dispatch-shape regression check and mute error mapping) |
+
 ## v0.5.5 development branch (pin, duplicate, color, batch open/move, active tab, event-driven wait) — work in progress
 
 | Check | Result |

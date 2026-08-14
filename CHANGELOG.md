@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [0.5.6] - 2026-08-15
+
+- Fix selector dispatch for `pin_firefox_tab`, `unpin_firefox_tab`, and `duplicate_firefox_tab` (the background script now unwraps `selector` before calling the controller; without this fix the tools returned `INVALID_SELECTOR`).
+- Map ignored programmatic mute changes to a dedicated `MUTE_REQUIRES_USER_GESTURE` error (Firefox silently ignores mute without a user gesture).
+- Rebuild and re-sign the extension as v0.5.6 through the AMO unlisted channel.
+
 ## [0.5.5] - 2026-08-15
 
 - Add `pin_firefox_tab` / `unpin_firefox_tab` (verified pinned state) and `duplicate_firefox_tab` (verified duplicate).

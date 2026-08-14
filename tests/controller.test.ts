@@ -740,6 +740,15 @@ describe("FirefoxTabController", () => {
     await expect(controller.restoreTab()).rejects.toMatchObject({ code: "NOTHING_TO_RESTORE" });
   });
 
+  it("maps an ignored programmatic mute to MUTE_REQUIRES_USER_GESTURE", async () => {
+    const browser = createBrowser([{ ...targetTab, muted: false }], []);
+    browser.tabs.update = vi.fn(async () => ({ ...targetTab, muted: false }));
+    const controller = new FirefoxTabController(browser);
+    await expect(controller.setTabMuted({ selector: { tabId: 10 }, muted: true })).rejects.toMatchObject({
+      code: "MUTE_REQUIRES_USER_GESTURE",
+    });
+  });
+
   it("mutes and unmutes a tab with verification", async () => {
     const browser = createBrowser([{ ...targetTab, muted: false }], []);
     const controller = new FirefoxTabController(browser);

@@ -800,10 +800,11 @@ export class FirefoxTabController {
     }
     const after = publicTab(await this.browserApi.tabs.update(before.id, { pinned: tab.pinned, muted: params.muted }));
     if ((after.muted ?? false) !== params.muted) {
-      throw new FirefoxTabsError("VERIFICATION_FAILED", "Firefox did not report the expected muted state.", {
-        expectedMuted: params.muted,
-        after,
-      });
+      throw new FirefoxTabsError(
+        "MUTE_REQUIRES_USER_GESTURE",
+        "Firefox ignored the programmatic mute/unmute; mute and unmute changes require a user gesture. Ask the user to click the tab's sound icon, or retry after the user interacts with the tab.",
+        { expectedMuted: params.muted, after },
+      );
     }
     return { changed: true, before, after };
   }

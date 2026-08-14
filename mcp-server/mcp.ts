@@ -51,7 +51,7 @@ async function invoke(bridge: BridgeLike, method: Parameters<BridgeLike["call"]>
 
 export function createMcpServer(bridge: BridgeLike): McpServer {
   const server = new McpServer(
-    { name: "firefox-tab-management-agent-mcp", version: "0.5.5" },
+    { name: "firefox-tab-management-agent-mcp", version: "0.5.6" },
     {
       instructions:
         "Open only explicit http/https URLs. Use exact URL or title matching and retry ambiguous matches with tabId. Create groups only when the user requested a new group; use the move tool if an exact group already exists. Never set allowUnpin=true without explicit user confirmation. Every write tool verifies the resulting Firefox state.",
@@ -338,7 +338,7 @@ export function createMcpServer(bridge: BridgeLike): McpServer {
     "set_firefox_tab_muted",
     {
       description:
-        "Mute or unmute one exactly identified Firefox tab and verify the resulting state.",
+        "Mute or unmute one exactly identified Firefox tab and verify the resulting state. Note: Firefox ignores programmatic mute changes without a user gesture — the tool returns MUTE_REQUIRES_USER_GESTURE and the user may need to click the tab's sound icon.",
       inputSchema: z.object({
         selector: selectorSchema,
         muted: z.boolean().describe("Whether the tab should be muted."),

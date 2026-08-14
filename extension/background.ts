@@ -198,11 +198,11 @@ async function dispatch(request: BridgeRequest): Promise<unknown> {
     case "set_tab_muted":
       return controller.setTabMuted(request.params as SetTabMutedParams);
     case "pin_tab":
-      return controller.pinTab(request.params as TabSelector);
+      return controller.pinTab((request.params as { selector: TabSelector }).selector);
     case "unpin_tab":
-      return controller.unpinTab(request.params as TabSelector);
+      return controller.unpinTab((request.params as { selector: TabSelector }).selector);
     case "duplicate_tab":
-      return controller.duplicateTab(request.params as TabSelector);
+      return controller.duplicateTab((request.params as { selector: TabSelector }).selector);
     case "ungroup_tab":
       return controller.ungroupTab(request.params as UngroupTabParams);
   }

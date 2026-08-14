@@ -32,13 +32,20 @@ describe("extension assets", () => {
     expect(background).not.toMatch(/[\u4e00-\u9fff]/);
   });
 
+  it("unwraps the selector before dispatching selector-only tools", async () => {
+    const background = await readFile(path.join(repoRoot, "extension", "background.ts"), "utf8");
+    for (const method of ["pinTab", "unpinTab", "duplicateTab"]) {
+      expect(background).toContain(`controller.${method}((request.params as { selector: TabSelector }).selector)`);
+    }
+  });
+
   it("declares nativeMessaging permission and keeps the stable Gecko ID", async () => {
     const manifest = JSON.parse(await readFile(path.join(repoRoot, "extension", "manifest.json"), "utf8"));
     expect(manifest.permissions).toContain("nativeMessaging");
     expect(manifest.permissions).toContain("tabs");
     expect(manifest.permissions).toContain("tabGroups");
     expect(manifest.browser_specific_settings.gecko.id).toBe("firefox-tabs-mcp@local.invalid");
-    expect(manifest.version).toBe("0.5.5");
+    expect(manifest.version).toBe("0.5.6");
     expect(manifest.content_security_policy).toContain("ws://127.0.0.1:*");
   });
 

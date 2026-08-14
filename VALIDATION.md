@@ -13,11 +13,12 @@ Validated locally on 15 August 2026 with Node.js 22.17.0 and npm 10.9.2.
 | Repository and installed Agent Skill `quick_validate.py` | Both passed |
 | GitHub YAML parsing | All workflow and issue-form files passed |
 | MCP Inspector `tools/list` | Passed; 7 tools discovered |
-| Pre-AMO `quickstart` | Passed; generated protected local config and preserved its token on rerun |
+| `quickstart` | Passed; generated protected local config and preserved its token on rerun |
 | Extension ZIP integrity | Passed for Tab Management Agent Bridge for Firefox |
+| Mozilla-signed XPI | Production AMO certificate chain present; version and stable Gecko ID verified |
 | MCP package install | Passed; the installed CLI exposed all 7 tools |
 | Agent Skill ZIP | Passed `quick_validate.py` after clean extraction |
-| AMO source-package rebuild | Passed; a clean `npm ci && npm run build` matched all extension output files |
+| AMO source-package rebuild | Passed; the archived review source reproduced every unsigned file in the signed XPI |
 | Live Firefox v0.3.0 | Passed; opened an HTTPS tab, created a group, and independently verified the exact URL and group ID |
 
 Discovered MCP tools:

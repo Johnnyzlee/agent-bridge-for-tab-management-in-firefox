@@ -18,17 +18,18 @@
 - [x] Confirm that GitHub Actions passes on Node.js 20 and 22.
 - [x] Enable private vulnerability reporting and review the published contact links.
 - [x] Add the repository description and topics.
-- [ ] Create an initial release containing the extension ZIP, MCP package, Agent Skill ZIP, and AMO source archive.
+- [x] Create an initial release containing the Mozilla-signed XPI, MCP package, Agent Skill ZIP, and matching source archives.
 
-## Before AMO submission
+## AMO status and next update
 
-- [ ] Approve a permanent public Gecko add-on ID such as `tab-management-agent-bridge@johnnyzlee.github.io`; the current `@local.invalid` development ID must not become the long-term public identity accidentally.
+- [x] Preserve the AMO-signed Gecko add-on ID `firefox-tabs-mcp@local.invalid` for all future updates.
+- [x] Pass Mozilla review and obtain the production-signed v0.3.0 XPI.
 - [ ] Approve a final icon and add the required icon sizes to the manifest.
 - [ ] Capture clean options-page and tab-group screenshots.
-- [ ] Publish the repository so the privacy policy, support page, source, and build instructions have stable URLs.
+- [x] Publish the repository so the privacy policy, support page, source, and build instructions have stable URLs.
 - [ ] Recheck the manifest permissions and `browsingActivity` declaration against the current AMO form.
-- [ ] Upload the extension package and matching source archive as a listed add-on, including the reviewer guide.
-- [ ] Test the signed build in a fresh Firefox profile before announcing it.
+- [ ] Submit a future branded update under the same Gecko ID.
+- [ ] Test the signed build in a fresh Firefox profile before each announcement.
 
 ## Future distribution improvements
 

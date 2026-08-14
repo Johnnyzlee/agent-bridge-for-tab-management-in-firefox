@@ -1,6 +1,6 @@
 # AMO Reviewer Guide
 
-This document is a draft for a future listed Firefox Add-on submission. It does not indicate that the extension has been submitted or signed.
+Version 0.3.0 passed Mozilla review and was signed by the AMO production signing service. The signed artifact retains the pre-rebrand display name `Local Tab Groups MCP Bridge` and the permanent Gecko ID `firefox-tabs-mcp@local.invalid`. Future updates must keep that ID even when the display name changes.
 
 ## Source and build environment
 
@@ -10,14 +10,14 @@ This document is a draft for a future listed Firefox Add-on submission. It does 
 - Node.js: 20 or newer
 - Package manager: npm using the committed `package-lock.json`
 
-No generated JavaScript is committed to the source tree. Install the locked dependencies and build from the repository root:
+For an exact rebuild of the signed v0.3.0 artifact, use the release attachment `local_tab_groups_mcp_bridge-0.3.0-amo-source.zip`. No generated JavaScript is included in that source package. Install the locked dependencies and build from its root:
 
 ```bash
 npm ci
 npm run build
 ```
 
-The reviewable extension is generated in `dist/firefox-extension/`. `extension/background.ts` is bundled by `esbuild`; `extension/manifest.json`, `options.html`, `options.css`, and `options.js` are copied without transformation. Source maps are included. Shared bridge types live in `shared/`.
+The reviewable extension is generated in `dist/firefox-extension/`. In the v0.3.0 review source, `src/extension/background.ts` is bundled by `esbuild`; `extension/manifest.json`, `options.html`, `options.css`, and `options.js` are copied without transformation. Source maps are included. The current default branch uses clearer top-level component directories but preserves the same operation set.
 
 To run the full local verification, including Firefox's linter:
 

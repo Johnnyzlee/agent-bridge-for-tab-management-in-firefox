@@ -25,11 +25,17 @@ MCP Server 提供能力，Agent Skill 规定可靠的使用流程，浏览器扩
 
 它不读取网页正文，不注入 content script，不执行任意页面 JavaScript，不读取 Cookie，也不会把浏览器数据发送给本项目运营的远程服务。
 
-## 插件尚未上架时的 5 分钟配置
+## 5 分钟配置
 
-在扩展获得 Mozilla 签名并上架 AMO 之前，使用 Firefox 的临时附加组件流程。
+0.3.0 已通过 Mozilla 审核，正式签名 XPI 位于 [GitHub Release](https://github.com/Johnnyzlee/agent-bridge-for-tab-management-in-firefox/releases/tag/v0.3.0)。由于审核发生在项目改名之前，Firefox 中仍会显示旧名 **Local Tab Groups MCP Bridge**。它的 Gecko ID 已成为永久扩展身份，后续品牌更新仍会沿用同一 ID。
 
-### 1. 下载并准备三件套
+### 1. 安装正式签名扩展
+
+1. 从 v0.3.0 Release 下载 `local_tab_groups_mcp_bridge-0.3.0-mozilla-signed.xpi`。
+2. 使用 Firefox 打开 XPI，并确认安装。
+3. 这是 Mozilla 签名版本，Firefox 重启后仍会保留。
+
+### 2. 下载并准备 MCP Server 与 Skill
 
 ```bash
 git clone https://github.com/Johnnyzlee/agent-bridge-for-tab-management-in-firefox.git
@@ -37,7 +43,7 @@ cd agent-bridge-for-tab-management-in-firefox
 npm run quickstart
 ```
 
-`quickstart` 会安装锁定版本的依赖、构建扩展和 MCP Server，并生成：
+`quickstart` 会安装锁定版本的依赖、构建 MCP Server 和开发版扩展，并生成：
 
 - `.local/bridge-token.txt`
 - `.local/mcp-config.json`
@@ -46,17 +52,13 @@ npm run quickstart
 
 重复运行时会保留已有令牌，避免 Firefox 与 MCP 配置突然失配。`.local/` 已被 Git 忽略，其中的令牌应视为本地秘密。
 
-### 2. 临时载入 Firefox 扩展
+### 3. 配置扩展
 
-1. 在 Firefox 打开 `about:debugging#/runtime/this-firefox`。
-2. 点击“临时载入附加组件”。
-3. 选择 `quickstart` 输出的 `dist/firefox-extension/manifest.json`。
-4. 打开 **Tab Management Agent Bridge for Firefox** 的“首选项”。
-5. 保持端口 `8765`，粘贴 `.local/bridge-token.txt` 中的令牌，然后点击“保存并重连”。
+打开 **Local Tab Groups MCP Bridge** 的“首选项”，保持端口 `8765`，粘贴 `.local/bridge-token.txt` 中的令牌，然后点击“保存并重连”。
 
-Firefox 每次重启都会移除临时附加组件。正式签名版上架前，需要在重启后重新选择同一个 manifest。标准版 Firefox 没有安全、稳定的“永久安装未签名扩展”捷径。
+只有开发源码时，才需要在 `about:debugging#/runtime/this-firefox` 中“临时载入附加组件”，并选择 `dist/firefox-extension/manifest.json`。临时版会在 Firefox 重启后消失，也不要让临时版和签名版同时占用同一端口。
 
-### 3. 连接 MCP 客户端
+### 4. 连接 MCP 客户端
 
 使用常见 `mcpServers` JSON 格式的客户端，可以把 `.local/mcp-config.json` 合并到客户端配置中，然后重启客户端。
 
@@ -87,7 +89,7 @@ PowerShell 用户运行 `.local/add-to-codex.ps1`。这些被 Git 忽略的本�
 
 0.3.0 使用一个固定桥接端口，因此同一时间只能有一个 stdio MCP 客户端占用连接。若要从 Codex 切换到 Hermes，应先停止 Codex，再让 Hermes 启动同一 MCP Server。
 
-### 4. 可选安装 Agent Skill
+### 5. 可选安装 Agent Skill
 
 只安装 MCP 就可以调用工具；如果 Agent 支持 `SKILL.md`，再安装 Skill 可以让它稳定遵守精确匹配、错误保护和操作后验证流程。
 
@@ -100,7 +102,7 @@ cp -R skills/firefox-tab-manager "${CODEX_HOME:-$HOME/.codex}/skills/"
 
 完成后重启 Agent。其他 Agent 请把 `skills/firefox-tab-manager/` 复制到该产品文档指定的 Skill 目录。Skill 格式尚未在所有 Agent 之间标准化；不支持 `SKILL.md` 的客户端只使用 MCP 即可。
 
-### 5. 验证
+### 6. 验证
 
 可以对 Agent 说：
 

@@ -26,11 +26,17 @@ The MCP server provides the capability. The Agent Skill provides behavior guidan
 
 It does not read page bodies, inject content scripts, execute arbitrary page JavaScript, inspect cookies, or send browser data to a project-operated remote service.
 
-## Five-minute setup before the AMO release
+## Five-minute setup
 
-Until the extension is signed and listed on addons.mozilla.org, use Firefox's temporary add-on flow.
+Version 0.3.0 includes a Mozilla-reviewed and production-signed XPI in the [GitHub Release](https://github.com/Johnnyzlee/agent-bridge-for-tab-management-in-firefox/releases/tag/v0.3.0). Because that artifact was reviewed before the project rebrand, Firefox displays it as **Local Tab Groups MCP Bridge**. Its signed Gecko ID is permanent; future branded updates will retain the same extension identity.
 
-### 1. Clone and prepare all three components
+### 1. Install the signed extension
+
+1. Download `local_tab_groups_mcp_bridge-0.3.0-mozilla-signed.xpi` from the v0.3.0 Release.
+2. Open the XPI with Firefox and approve the installation prompt.
+3. The Mozilla-signed extension remains installed after Firefox restarts.
+
+### 2. Clone and prepare the MCP server and Skill
 
 ```bash
 git clone https://github.com/Johnnyzlee/agent-bridge-for-tab-management-in-firefox.git
@@ -38,7 +44,7 @@ cd agent-bridge-for-tab-management-in-firefox
 npm run quickstart
 ```
 
-`quickstart` installs the locked dependencies, builds the MCP server and extension, preserves an existing local token when rerun, and generates:
+`quickstart` installs the locked dependencies, builds the MCP server and a development copy of the extension, preserves an existing local token when rerun, and generates:
 
 - `.local/bridge-token.txt`
 - `.local/mcp-config.json`
@@ -47,17 +53,13 @@ npm run quickstart
 
 The `.local/` directory is ignored by Git. Treat its token as a local secret.
 
-### 2. Load the temporary extension
+### 3. Configure the extension
 
-1. Open `about:debugging#/runtime/this-firefox` in Firefox.
-2. Select **Load Temporary Add-on**.
-3. Select the generated `dist/firefox-extension/manifest.json` shown by `quickstart`.
-4. Open **Tab Management Agent Bridge for Firefox** preferences.
-5. Keep port `8765`, paste the token from `.local/bridge-token.txt`, and select **Save and reconnect**.
+Open **Local Tab Groups MCP Bridge** preferences, keep port `8765`, paste the token from `.local/bridge-token.txt`, and select **Save and reconnect**.
 
-Firefox removes temporary add-ons whenever the browser restarts. Reload the same manifest after each restart until the signed AMO release is available. Standard Firefox does not provide a safe persistent-install shortcut for an unsigned add-on.
+For source development only, you may instead open `about:debugging#/runtime/this-firefox`, select **Load Temporary Add-on**, and choose `dist/firefox-extension/manifest.json`. Firefox removes that temporary build after each restart; do not load it alongside the signed extension on the same port.
 
-### 3. Connect an MCP client
+### 4. Connect an MCP client
 
 For clients using the common `mcpServers` JSON format, merge the generated `.local/mcp-config.json` into the client's configuration and restart the client.
 
@@ -88,7 +90,7 @@ The equivalent generic configuration is:
 
 Version 0.3.0 uses one bridge port, so only one stdio MCP client can own the connection at a time. Stop Codex before handing the same port to another client such as Hermes.
 
-### 4. Optionally install the Agent Skill
+### 5. Optionally install the Agent Skill
 
 MCP is sufficient for calling the tools. Install the Skill when the agent host supports `SKILL.md` packages and you want consistent exact matching, guarded failures, and post-operation verification.
 
@@ -101,7 +103,7 @@ cp -R skills/firefox-tab-manager "${CODEX_HOME:-$HOME/.codex}/skills/"
 
 Restart the agent after installation. For another agent host, copy `skills/firefox-tab-manager/` into that product's documented skills directory. Skill formats are not standardized across all agents; hosts without `SKILL.md` support should use the MCP server alone.
 
-### 5. Verify the connection
+### 6. Verify the connection
 
 Ask the agent:
 

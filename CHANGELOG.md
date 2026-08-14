@@ -11,6 +11,7 @@ All notable changes to this project will be documented in this file.
 
 ## [0.3.0] - 2026-08-15
 
+- Pass Mozilla review and receive a production-signed XPI under the stable Gecko ID `firefox-tabs-mcp@local.invalid`.
 - Add the `open_firefox_tab` tool.
 - Add exact creation, movement, and removal operations for Firefox tab groups.
 - Add authenticated loopback communication between the MCP server and extension.

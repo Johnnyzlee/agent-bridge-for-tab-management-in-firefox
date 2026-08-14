@@ -19,8 +19,11 @@
 - [x] v0.4.0 — automatic pairing via Native Messaging.
 - [x] v0.3.1 — Mozilla-reviewed public release (archived).
 
+## Automated release workflow
+
+Push a tag matching `package.json` (`git tag v0.5.8 && git push origin v0.5.8`) and `.github/workflows/release.yml` runs: version-mismatch guard → `npm run check` → packaging → AMO unlisted signing (secrets `AMO_JWT_ISSUER` / `AMO_JWT_SECRET`) → GitHub Release with the signed XPI, MCP tgz, skill zip, and source zip. Release notes are generic; edit the Release afterwards for highlights.
+
 ## Future distribution improvements
 
 - [ ] Decide whether to publish the server as an npm CLI package for one-command MCP installation.
-- [ ] Add an automated tagged-release workflow after a manual release cycle is proven.
 - [ ] Confirm the Windows registration flow on a real Windows machine (implemented and unit-tested, not hardware-verified).

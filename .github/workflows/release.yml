@@ -1,0 +1,88 @@
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install locked dependencies
+        run: npm ci
+
+      - name: Verify tag matches package version
+        run: |
+          TAG="${GITHUB_REF#refs/tags/v}"
+          PKG="$(node -p "require('./package.json').version")"
+          test "$TAG" = "$PKG" || {
+            echo "::error::tag v${TAG} does not match package.json version ${PKG}; refusing to release"
+            exit 1
+          }
+
+      - name: Run the complete check
+        run: npm run check
+
+      - name: Package artifacts
+        run: |
+          PKG="$(node -p "require('./package.json').version")"
+          mkdir -p packages
+          npm pack --pack-destination packages
+          cd dist/firefox-extension
+          zip -qr "../../packages/tab_management_agent_bridge_for_firefox-${PKG}-unsigned.zip" .
+          cd ../..
+          cd skills
+          zip -qr "../packages/firefox_tab_manager_skill-${PKG}.zip" firefox-tab-manager
+          cd ..
+          zip -qrq "packages/agent_bridge_for_tab_management_in_firefox-${PKG}-source.zip" \
+            extension mcp-server native-host cli shared skills scripts docs \
+            README.md README.zh-CN.md SECURITY.md PRIVACY.md CHANGELOG.md \
+            CONTRIBUTING.md VALIDATION.md LICENSE package.json package-lock.json \
+            tsconfig.json .gitignore .github
+
+      - name: Sign the extension via AMO (unlisted channel)
+        env:
+          AMO_JWT_ISSUER: ${{ secrets.AMO_JWT_ISSUER }}
+          AMO_JWT_SECRET: ${{ secrets.AMO_JWT_SECRET }}
+        run: |
+          test -n "$AMO_JWT_ISSUER" && test -n "$AMO_JWT_SECRET" || {
+            echo "::error::AMO_JWT_ISSUER / AMO_JWT_SECRET secrets are not configured"
+            exit 1
+          }
+          npx --yes web-ext@10.6.0 sign \
+            --source-dir dist/firefox-extension \
+            --artifacts-dir packages \
+            --channel unlisted \
+            --api-key "$AMO_JWT_ISSUER" \
+            --api-secret "$AMO_JWT_SECRET"
+
+      - name: Normalize the signed XPI filename
+        run: |
+          PKG="$(node -p "require('./package.json').version")"
+          mv "packages/"*-"${PKG}.xpi" "packages/tab_management_agent_bridge_for_firefox-${PKG}.xpi"
+
+      - name: Create the GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          PKG="$(node -p "require('./package.json').version")"
+          gh release create "v${PKG}" \
+            --title "v${PKG} — automated release" \
+            --notes "Automated release for v${PKG}: full check, AMO unlisted signing, and packaging ran in CI." \
+            "packages/tab_management_agent_bridge_for_firefox-${PKG}.xpi" \
+            "packages/firefox-tab-management-agent-mcp-${PKG}.tgz" \
+            "packages/firefox_tab_manager_skill-${PKG}.zip" \
+            "packages/agent_bridge_for_tab_management_in_firefox-${PKG}-source.zip"

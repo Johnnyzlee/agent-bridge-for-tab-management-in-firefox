@@ -16,6 +16,7 @@ function createBrowser(initialTabs: BrowserTab[], groups: BrowserTabGroup[]): Br
   >;
   ungroupCalls: Array<number | number[]>;
   updateGroupCalls: Array<{ groupId: number; properties: { title: string; collapsed?: boolean } }>;
+  moveCalls: Array<{ tabId: number; index: number }>;
 } {
   const tabs = initialTabs.map((tab) => ({ ...tab }));
   const mutableGroups = groups.map((group) => ({ ...group }));
@@ -26,11 +27,13 @@ function createBrowser(initialTabs: BrowserTab[], groups: BrowserTabGroup[]): Br
   > = [];
   const ungroupCalls: Array<number | number[]> = [];
   const updateGroupCalls: Array<{ groupId: number; properties: { title: string; collapsed?: boolean } }> = [];
+  const moveCalls: Array<{ tabId: number; index: number }> = [];
   return {
     createCalls,
     groupCalls,
     ungroupCalls,
     updateGroupCalls,
+    moveCalls,
     tabs: {
       query: vi.fn(async (query: Record<string, unknown>) =>
         query.lastFocusedWindow ? tabs.filter((tab) => tab.windowId === 1) : tabs.map((tab) => ({ ...tab })),
@@ -91,6 +94,21 @@ function createBrowser(initialTabs: BrowserTab[], groups: BrowserTabGroup[]): Br
         const tab = tabs.find((candidate) => candidate.id === id);
         if (!tab) throw new Error("missing tab");
         tab.pinned = properties.pinned;
+        return { ...tab };
+      }),
+      move: vi.fn(async (id, properties) => {
+        moveCalls.push({ tabId: id, index: properties.index });
+        const tab = tabs.find((candidate) => candidate.id === id);
+        if (!tab) throw new Error("missing tab");
+        const windowTabs = tabs
+          .filter((candidate) => candidate.windowId === tab.windowId)
+          .sort((a, b) => a.index - b.index);
+        const from = windowTabs.findIndex((candidate) => candidate.id === id);
+        windowTabs.splice(from, 1);
+        windowTabs.splice(Math.min(properties.index, windowTabs.length), 0, tab);
+        windowTabs.forEach((candidate, index) => {
+          candidate.index = index;
+        });
         return { ...tab };
       }),
     },
@@ -290,5 +308,66 @@ describe("FirefoxTabController", () => {
     expect(result.changed).toBe(true);
     expect(result.after.groupId).toBe(TAB_GROUP_ID_NONE);
     expect(browser.ungroupCalls).toEqual([10]);
+  });
+
+  it("moves an exact tab to a target index and verifies it", async () => {
+    const secondTab: BrowserTab = { ...targetTab, id: 11, index: 2 };
+    const browser = createBrowser([targetTab, secondTab], []);
+    const controller = new FirefoxTabController(browser);
+    const result = await controller.repositionTab({ selector: { tabId: 10 }, index: 0 });
+
+    expect(result.changed).toBe(true);
+    expect(result.before.index).toBe(3);
+    expect(result.after.index).toBe(0);
+    expect(browser.moveCalls).toEqual([{ tabId: 10, index: 0 }]);
+  });
+
+  it("moves a tab to the end of its window with index -1", async () => {
+    const secondTab: BrowserTab = { ...targetTab, id: 11, index: 2 };
+    const browser = createBrowser([targetTab, secondTab], []);
+    const controller = new FirefoxTabController(browser);
+    const result = await controller.repositionTab({ selector: { tabId: 10 }, index: -1 });
+
+    expect(result.after.index).toBe(1);
+    expect(browser.moveCalls).toEqual([{ tabId: 10, index: 1 }]);
+  });
+
+  it("treats an already positioned tab as a verified no-op", async () => {
+    const firstTab: BrowserTab = { ...targetTab, index: 0 };
+    const secondTab: BrowserTab = { ...targetTab, id: 11, index: 1 };
+    const browser = createBrowser([firstTab, secondTab], []);
+    const controller = new FirefoxTabController(browser);
+    const result = await controller.repositionTab({ selector: { tabId: 10 }, index: 0 });
+
+    expect(result.changed).toBe(false);
+    expect(browser.moveCalls).toHaveLength(0);
+  });
+
+  it("clamps an out-of-range target index to the window end", async () => {
+    const secondTab: BrowserTab = { ...targetTab, id: 11, index: 2 };
+    const browser = createBrowser([targetTab, secondTab], []);
+    const controller = new FirefoxTabController(browser);
+    const result = await controller.repositionTab({ selector: { tabId: 10 }, index: 999 });
+
+    expect(result.after.index).toBe(1);
+    expect(browser.moveCalls).toEqual([{ tabId: 10, index: 1 }]);
+  });
+
+  it("rejects an invalid target index", async () => {
+    const browser = createBrowser([targetTab], []);
+    const controller = new FirefoxTabController(browser);
+    await expect(controller.repositionTab({ selector: { tabId: 10 }, index: -2 })).rejects.toMatchObject({
+      code: "INVALID_TAB_INDEX",
+    } satisfies Partial<FirefoxTabsError>);
+    expect(browser.moveCalls).toHaveLength(0);
+  });
+
+  it("fails safely when a reposition selector is ambiguous", async () => {
+    const browser = createBrowser([targetTab, { ...targetTab, id: 11, windowId: 2 }], []);
+    const controller = new FirefoxTabController(browser);
+    await expect(
+      controller.repositionTab({ selector: { url: targetUrl }, index: 0 }),
+    ).rejects.toMatchObject({ code: "AMBIGUOUS_TAB" } satisfies Partial<FirefoxTabsError>);
+    expect(browser.moveCalls).toHaveLength(0);
   });
 });

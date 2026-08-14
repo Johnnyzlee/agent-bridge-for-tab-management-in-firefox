@@ -8,8 +8,9 @@ import {
   type CreateTabGroupParams,
   type ListGroupsParams,
   type ListTabsParams,
-  type MoveTabParams,
+  type MoveTabToGroupParams,
   type OpenTabParams,
+  type RepositionTabParams,
   type UngroupTabParams,
 } from "../shared/protocol.js";
 
@@ -145,7 +146,9 @@ async function dispatch(request: BridgeRequest): Promise<unknown> {
     case "create_tab_group":
       return controller.createTabGroup(request.params as CreateTabGroupParams);
     case "move_tab_to_group":
-      return controller.moveTabToGroup(request.params as MoveTabParams);
+      return controller.moveTabToGroup(request.params as MoveTabToGroupParams);
+    case "move_tab":
+      return controller.repositionTab(request.params as RepositionTabParams);
     case "ungroup_tab":
       return controller.ungroupTab(request.params as UngroupTabParams);
   }

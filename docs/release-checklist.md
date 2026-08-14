@@ -11,6 +11,12 @@
 - [x] Extension, MCP package, Agent Skill, and AMO source archives rebuilt and integrity-checked.
 - [x] AMO source package rebuilt in a clean temporary directory and compared with the expected extension output.
 
+## v0.5.3 development (list windows)
+
+- [x] `list_firefox_windows` with per-window tab/group counts and group sizes.
+- [x] Tests (105 total).
+- [ ] Submit v0.5.3 as an AMO unlisted version and verify the signed XPI.
+
 ## v0.5.2 development (close / merge / rename / collapse / cross-window)
 
 - [x] `close_firefox_tabs` (batch by tabId) and `close_firefox_tab_group` (whole group + empty-group removal).

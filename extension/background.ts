@@ -146,6 +146,8 @@ async function dispatch(request: BridgeRequest): Promise<unknown> {
       return controller.listTabs(request.params as ListTabsParams);
     case "list_tab_groups":
       return controller.listTabGroups(request.params as ListGroupsParams);
+    case "list_windows":
+      return controller.listWindows();
     case "open_tab":
       return controller.openTab(request.params as OpenTabParams);
     case "create_tab_group":

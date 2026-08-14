@@ -3,6 +3,7 @@ export const BRIDGE_PROTOCOL_VERSION = 1 as const;
 export type BridgeMethod =
   | "list_tabs"
   | "list_tab_groups"
+  | "list_windows"
   | "open_tab"
   | "create_tab_group"
   | "move_tab_to_group"

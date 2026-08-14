@@ -46,7 +46,7 @@ The host manifest is registered per platform: `~/Library/Application Support/Moz
 
 The first extension frame over the WebSocket is an authentication message. Later frames are typed request/response messages with request identifiers. Requests have a timeout, and malformed, unauthenticated, or unsupported messages are rejected. Connections that never authenticate are closed.
 
-The MCP surface intentionally contains only these operations: bridge status, list tabs, list groups, open an HTTP(S) tab, create a group, move a tab to a group (optionally into another window), move a tab to a position in its window, ungroup, close tabs by id, close an exact group, merge two exact groups atomically, rename a group, and collapse/expand a group.
+The MCP surface intentionally contains only these operations: bridge status, list tabs, list groups, list windows (with per-window tab/group counts), open an HTTP(S) tab, create a group, move a tab to a group (optionally into another window), move a tab to a position in its window, ungroup, close tabs by id, close an exact group, merge two exact groups atomically, rename a group, and collapse/expand a group.
 
 ## Write safety
 

@@ -2,6 +2,13 @@
 
 Validated locally on 15 August 2026 with Node.js 22.17.0 and npm 10.9.2.
 
+## v0.5.3 development branch (list windows) — work in progress
+
+| Check | Result |
+|---|---|
+| Vitest | 105 tests passed across 6 files (window summaries: tab/group counts, group sizes and collapsed state) |
+| Production build + web-ext lint | Passed |
+
 ## v0.5.2 development branch (close, merge, rename, collapse, cross-window) — work in progress
 
 | Check | Result |

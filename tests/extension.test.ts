@@ -38,7 +38,7 @@ describe("extension assets", () => {
     expect(manifest.permissions).toContain("tabs");
     expect(manifest.permissions).toContain("tabGroups");
     expect(manifest.browser_specific_settings.gecko.id).toBe("firefox-tabs-mcp@local.invalid");
-    expect(manifest.version).toBe("0.5.2");
+    expect(manifest.version).toBe("0.5.3");
     expect(manifest.content_security_policy).toContain("ws://127.0.0.1:*");
   });
 

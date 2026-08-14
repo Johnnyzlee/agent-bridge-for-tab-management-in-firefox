@@ -471,6 +471,48 @@ export class FirefoxTabController {
     return { changed: true, merged: tabs.length, removedGroup: true, group: toGroup, tabs };
   }
 
+  async listWindows(): Promise<{
+    windows: Array<{
+      windowId: number;
+      tabCount: number;
+      groupCount: number;
+      groups: Array<{ id: number; title: string; collapsed: boolean; tabCount: number }>;
+    }>;
+  }> {
+    const [tabs, groups] = await Promise.all([
+      this.browserApi.tabs.query({}),
+      this.browserApi.tabGroups.query({}),
+    ]);
+    const byWindow = new Map<number, { tabCount: number; groups: Map<number, { id: number; title: string; collapsed: boolean; tabCount: number }> }>();
+    for (const tab of tabs) {
+      const windowId = tab.windowId;
+      let entry = byWindow.get(windowId);
+      if (!entry) {
+        entry = { tabCount: 0, groups: new Map() };
+        byWindow.set(windowId, entry);
+      }
+      entry.tabCount += 1;
+      if (tab.groupId !== TAB_GROUP_ID_NONE) {
+        let group = entry.groups.get(tab.groupId);
+        if (!group) {
+          const source = groups.find((candidate) => candidate.id === tab.groupId);
+          group = { id: tab.groupId, title: source?.title ?? "", collapsed: source?.collapsed ?? false, tabCount: 0 };
+          entry.groups.set(tab.groupId, group);
+        }
+        group.tabCount += 1;
+      }
+    }
+    const windows = [...byWindow.entries()]
+      .map(([windowId, entry]) => ({
+        windowId,
+        tabCount: entry.tabCount,
+        groupCount: entry.groups.size,
+        groups: [...entry.groups.values()],
+      }))
+      .sort((a, b) => a.windowId - b.windowId);
+    return { windows };
+  }
+
   async renameTabGroup(params: RenameTabGroupParams): Promise<{
     changed: boolean;
     before: BrowserTabGroup;

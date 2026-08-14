@@ -529,4 +529,26 @@ describe("FirefoxTabController", () => {
     ).rejects.toMatchObject({ code: "GROUP_NOT_FOUND" });
     expect(browser.moveToWindowCalls).toHaveLength(0);
   });
+
+  it("lists windows with per-window tab and group counts", async () => {
+    const windowTwoTab: BrowserTab = { ...targetTab, id: 11, windowId: 2, index: 0 };
+    const groupedTab: BrowserTab = { ...targetTab, id: 12, windowId: 1, index: 4, groupId: 42 };
+    const secondGroup: BrowserTabGroup = { id: 43, windowId: 1, title: "Research", color: "blue", collapsed: true };
+    const browser = createBrowser(
+      [targetTab, groupedTab, windowTwoTab],
+      [browsingGroup, secondGroup],
+    );
+    const controller = new FirefoxTabController(browser);
+    const result = await controller.listWindows();
+
+    expect(result.windows).toEqual([
+      {
+        windowId: 1,
+        tabCount: 2,
+        groupCount: 1,
+        groups: [{ id: 42, title: "Browsering", collapsed: false, tabCount: 1 }],
+      },
+      { windowId: 2, tabCount: 1, groupCount: 0, groups: [] },
+    ]);
+  });
 });

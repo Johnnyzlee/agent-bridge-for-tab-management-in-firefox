@@ -51,7 +51,7 @@ async function invoke(bridge: BridgeLike, method: Parameters<BridgeLike["call"]>
 
 export function createMcpServer(bridge: BridgeLike): McpServer {
   const server = new McpServer(
-    { name: "firefox-tab-management-agent-mcp", version: "0.5.2" },
+    { name: "firefox-tab-management-agent-mcp", version: "0.5.3" },
     {
       instructions:
         "Open only explicit http/https URLs. Use exact URL or title matching and retry ambiguous matches with tabId. Create groups only when the user requested a new group; use the move tool if an exact group already exists. Never set allowUnpin=true without explicit user confirmation. Every write tool verifies the resulting Firefox state.",
@@ -85,6 +85,16 @@ export function createMcpServer(bridge: BridgeLike): McpServer {
       inputSchema: z.object({ windowId: z.number().int().positive().optional() }),
     },
     async (params) => invoke(bridge, "list_tab_groups", params),
+  );
+
+  server.registerTool(
+    "list_firefox_windows",
+    {
+      description:
+        "List Firefox windows with per-window tab and group counts, and each group's title and size. Use it to pick a target window for cross-window moves.",
+      inputSchema: z.object({}),
+    },
+    async () => invoke(bridge, "list_windows", {}),
   );
 
   server.registerTool(

@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [0.5.3] - 2026-08-15
+
+- Add `list_firefox_windows`: per-window tab and group counts with each group's title, collapsed state, and size — the target-picker for cross-window moves.
+- Rebuild and re-sign the extension as v0.5.3 through the AMO unlisted channel.
+
 ## [0.5.2] - 2026-08-15
 
 - Add `close_firefox_tabs` (batch close by tabId with existence checks and verification) and `close_firefox_tab_group` (close a whole exact group and remove the empty group).

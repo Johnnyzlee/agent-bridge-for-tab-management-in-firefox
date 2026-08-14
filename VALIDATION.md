@@ -6,7 +6,7 @@ Validated locally on 15 August 2026 with Node.js 22.17.0 and npm 10.9.2.
 
 | Check | Result |
 |---|---|
-| Vitest | 125 tests passed across 6 files (plus restore-tab via sessions, mute/unmute with verification) |
+| Vitest | 126 tests passed across 6 files; broker event-driven wait (cache hit, event arrival, timeout, waiter cleanup on agent disconnect); controller covers all 26 tools |
 | Production build + web-ext lint | Passed |
 | Vitest | 122 tests passed across 6 files (pin/unpin, duplicate, group color, move-to-window, atomic open-into-group with rollback, batch move, active tab, broker tab-complete event cache and waiters) |
 | Production build + web-ext lint | Passed |

@@ -25,6 +25,10 @@ To run the full local verification, including Firefox's linter:
 npm run check
 ```
 
+## Permissions
+
+The manifest requests `tabs`, `tabGroups`, `storage`, `nativeMessaging`, `sessions`, and loopback host access. `sessions` is used only by `restore_firefox_tab` (restoring a recently closed tab or window); the extension never reads browsing history beyond the sessions-restore call the user requested.
+
 ## New in v0.4.0: Native Messaging permission and automatic pairing
 
 v0.4.0 removes the manual token entry from the options page and adds the `nativeMessaging` permission so the extension can fetch its bridge configuration from a local Native Messaging Host:

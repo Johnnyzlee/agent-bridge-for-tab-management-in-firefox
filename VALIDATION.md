@@ -2,6 +2,12 @@
 
 Validated locally on 15 August 2026 with Node.js 22.17.0 and npm 10.9.2. Historical validation records for earlier releases are archived in the release notes; this file tracks the current development cycle.
 
+## v0.5.9 (released — server-only, no re-sign)
+
+| Check | Result |
+|---|---|
+| Waiter race fix | Multiple waiters on one tabId are all answered (regression test added); 130 tests pass |
+
 ## v0.5.8 development (close confirmation, broker hardening) — work in progress
 
 | Check | Result |

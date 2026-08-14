@@ -307,6 +307,30 @@ describe("Broker tab-complete events", () => {
     await expect(pending).resolves.toMatchObject({ tabId: 55 });
   });
 
+  it("answers every waiter for the same tabId when the event arrives", async () => {
+    const broker = await startBroker();
+    const extension = await connectExtension(broker);
+    const { agentPort } = brokerPorts(broker);
+    const clientA = new BrokerClient({ token, agentPort, connectionWaitMs: 500, requestTimeoutMs: 3000 });
+    const clientB = new BrokerClient({ token, agentPort, connectionWaitMs: 500, requestTimeoutMs: 3000 });
+    clients.push(clientA, clientB);
+    await clientA.connect();
+    await clientB.connect();
+
+    const waitA = clientA.call("wait_tab", { tabId: 42, timeoutMs: 2500 });
+    const waitB = clientB.call("wait_tab", { tabId: 42, timeoutMs: 2500 });
+    await new Promise((resolve) => setTimeout(resolve, 100));
+    extension.send(
+      JSON.stringify({
+        type: "event",
+        event: "tab_complete",
+        data: { tabId: 42, url: "https://shared.example/", title: "Shared" },
+      }),
+    );
+    await expect(waitA).resolves.toMatchObject({ tabId: 42, url: "https://shared.example/" });
+    await expect(waitB).resolves.toMatchObject({ tabId: 42, url: "https://shared.example/" });
+  });
+
   it("evicts the oldest completion record beyond the cache cap", async () => {
     const tracker = new TabEventTracker({ maxCompletedTabs: 2 });
     tracker.handleEvent({ event: "tab_complete", data: { tabId: 1, url: "https://a.example/", title: "A" } });

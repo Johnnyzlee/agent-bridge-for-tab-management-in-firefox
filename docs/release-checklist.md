@@ -1,6 +1,11 @@
 # Release Checklist
 
-## Current: v0.5.8 (close confirmation, broker hardening)
+## Current: v0.5.9 (waiter race fix) — released, server-only
+
+- [x] Same-tabId multi-waiter race fixed (all waiters answered; no timer leak).
+- [x] Server-only; extension not re-signed.
+
+## Released: v0.5.8 (close confirmation, broker hardening)
 
 - [x] `confirmClose: true` required for `close_firefox_tabs` / `close_firefox_tab_group` (schema + controller).
 - [x] Broker tab-completion cache capped at 500 with eviction; dead code removed; `tab-events.ts` extracted.

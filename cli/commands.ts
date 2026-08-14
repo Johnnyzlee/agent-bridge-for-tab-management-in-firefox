@@ -31,7 +31,7 @@ import {
 } from "../shared/config.js";
 import { BRIDGE_PROTOCOL_VERSION } from "../shared/protocol.js";
 
-export const APP_VERSION = "0.5.8";
+export const APP_VERSION = "0.5.9";
 
 export interface SetupOptions {
   platform?: PlatformInfo;

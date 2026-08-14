@@ -18,7 +18,7 @@ export interface TabEventTrackerOptions {
 
 export class TabEventTracker {
   private readonly completedTabs = new Map<number, TabCompleteRecord>();
-  private readonly tabWaiters = new Map<number, TabWaiter>();
+  private readonly tabWaiters = new Map<number, Set<TabWaiter>>();
   private readonly maxCompletedTabs: number;
 
   constructor(options: TabEventTrackerOptions = {}) {
@@ -42,11 +42,13 @@ export class TabEventTracker {
         this.completedTabs.delete(oldest);
       }
     }
-    const waiter = this.tabWaiters.get(data.tabId);
-    if (waiter) {
-      clearTimeout(waiter.timer);
+    const waiters = this.tabWaiters.get(data.tabId);
+    if (waiters && waiters.size > 0) {
       this.tabWaiters.delete(data.tabId);
-      waiter.respond({ tabId: data.tabId, url: record.url, title: record.title, waitedMs: 0 });
+      for (const waiter of waiters) {
+        clearTimeout(waiter.timer);
+        waiter.respond({ tabId: data.tabId, url: record.url, title: record.title, waitedMs: 0 });
+      }
     }
   }
 
@@ -77,11 +79,15 @@ export class TabEventTracker {
       respond({ tabId, url: cached.url, title: cached.title, waitedMs: 0 });
       return;
     }
-    const timer = setTimeout(() => {
-      this.tabWaiters.delete(tabId);
-      respondError("TAB_LOAD_TIMEOUT", `Firefox did not report tab ${tabId} as loaded within the timeout.`);
-    }, timeoutMs);
-    this.tabWaiters.set(tabId, { timer, agent, respond });
+    const waiter: TabWaiter = {
+      timer: setTimeout(() => {
+        this.removeWaiter(tabId, waiter);
+        respondError("TAB_LOAD_TIMEOUT", `Firefox did not report tab ${tabId} as loaded within the timeout.`);
+      }, timeoutMs),
+      agent,
+      respond,
+    };
+    this.addWaiter(tabId, waiter);
   }
 
   async waitForTab(params: unknown): Promise<unknown> {
@@ -96,25 +102,31 @@ export class TabEventTracker {
       return { tabId, url: cached.url, title: cached.title, waitedMs: 0 };
     }
     return new Promise<unknown>((resolve, reject) => {
-      const timer = setTimeout(() => {
-        this.tabWaiters.delete(tabId);
-        reject(new FirefoxTabsError("TAB_LOAD_TIMEOUT", `Firefox did not report tab ${tabId} as loaded within the timeout.`));
-      }, timeoutMs);
-      this.tabWaiters.set(tabId, {
-        timer,
+      const waiter: TabWaiter = {
+        timer: setTimeout(() => {
+          this.removeWaiter(tabId, waiter);
+          reject(new FirefoxTabsError("TAB_LOAD_TIMEOUT", `Firefox did not report tab ${tabId} as loaded within the timeout.`));
+        }, timeoutMs),
         respond: (result) => {
-          clearTimeout(timer);
+          clearTimeout(waiter.timer);
           resolve(result);
         },
-      });
+      };
+      this.addWaiter(tabId, waiter);
     });
   }
 
   rejectWaitersForAgent(agent: WebSocket): void {
-    for (const [tabId, waiter] of this.tabWaiters) {
-      if (waiter.agent !== agent) continue;
-      clearTimeout(waiter.timer);
-      this.tabWaiters.delete(tabId);
+    for (const [tabId, waiters] of this.tabWaiters) {
+      for (const waiter of waiters) {
+        if (waiter.agent === agent) {
+          clearTimeout(waiter.timer);
+          waiters.delete(waiter);
+        }
+      }
+      if (waiters.size === 0) {
+        this.tabWaiters.delete(tabId);
+      }
     }
   }
 
@@ -123,11 +135,31 @@ export class TabEventTracker {
   }
 
   stop(): void {
-    for (const waiter of this.tabWaiters.values()) {
-      clearTimeout(waiter.timer);
+    for (const waiters of this.tabWaiters.values()) {
+      for (const waiter of waiters) {
+        clearTimeout(waiter.timer);
+      }
     }
     this.tabWaiters.clear();
     this.completedTabs.clear();
+  }
+
+  private addWaiter(tabId: number, waiter: TabWaiter): void {
+    let waiters = this.tabWaiters.get(tabId);
+    if (!waiters) {
+      waiters = new Set<TabWaiter>();
+      this.tabWaiters.set(tabId, waiters);
+    }
+    waiters.add(waiter);
+  }
+
+  private removeWaiter(tabId: number, waiter: TabWaiter): void {
+    const waiters = this.tabWaiters.get(tabId);
+    if (!waiters) return;
+    waiters.delete(waiter);
+    if (waiters.size === 0) {
+      this.tabWaiters.delete(tabId);
+    }
   }
 
   private timeoutOf(raw: unknown): number {

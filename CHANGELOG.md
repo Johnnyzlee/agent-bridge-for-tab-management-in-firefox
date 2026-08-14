@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [0.5.9] - 2026-08-15
+
+- Fix a shared-broker race: multiple agents waiting on the same tabId are now all answered when the completion event arrives (previously the second waiter overwrote the first, leaking its timer and causing a spurious `TAB_LOAD_TIMEOUT` or a lost event).
+- Server-only change; the extension itself is unchanged and does not need re-signing.
+
 ## [0.5.8] - 2026-08-15
 
 - Require explicit `confirmClose: true` for `close_firefox_tabs` and `close_firefox_tab_group` (enforced in the tool schema and the controller) so irreversible closes cannot happen by accident.

@@ -208,6 +208,12 @@ Or open the extension's options page: it shows the auto-configuration status, co
 
 A shared broker on `127.0.0.1:8767` multiplexes any number of agents over the single Firefox connection. The first MCP server you start becomes the broker; every other server instance automatically connects to it as a client — so Claude Code, Hermes, OpenClaw, Codex, and OpenCode can all manage the same Firefox session simultaneously. Each client still authenticates with the same shared secret from the local configuration; nothing else changes in your client configs.
 
+## Works alongside the official Firefox MCP
+
+Mozilla's official [Firefox DevTools MCP](https://github.com/mozilla/firefox-devtools-mcp) gives agents debugging access through DevTools — console, network, and DOM inspection. It does **not** manage tabs or native tab groups.
+
+This project covers exactly that gap: opening, closing, duplicating, muting, pinning, and restoring tabs, plus creating, moving, merging, renaming, recoloring, collapsing, and closing native tab groups — with exact matching, cross-window support, and post-write verification. The feature sets do not overlap, so the two servers work side by side in the same client: use Firefox DevTools MCP for debugging, and this bridge for tab and group organization.
+
 ## Useful commands
 
 ```bash

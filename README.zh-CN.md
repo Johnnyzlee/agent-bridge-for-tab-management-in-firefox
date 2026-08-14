@@ -208,6 +208,12 @@ Server 会自动从共享的本地配置读取端口和密钥。无需环境变�
 
 共享 Broker 监听 `127.0.0.1:8767`，在单条 Firefox 连接上多路复用任意数量的 Agent。第一个启动的 MCP server 自动成为 Broker，其他实例自动以客户端身份接入——Claude Code、Hermes、OpenClaw、Codex、OpenCode 可以同时管理同一个 Firefox 会话。每个客户端仍用本地配置中的同一个共享密钥认证；你的客户端配置完全不用改。
 
+## 与 Firefox 官方 MCP 互补使用
+
+Mozilla 官方的 [Firefox DevTools MCP](https://github.com/mozilla/firefox-devtools-mcp) 为 Agent 提供 DevTools 调试能力（控制台、网络、DOM 检查），**不包含标签页和原生标签组管理**。
+
+本项目恰好补上这一块：打开/关闭/复制/静音/置顶/恢复标签页，以及创建/移动/合并/重命名/着色/折叠/关闭原生标签组——全部精确匹配、支持跨窗口、写后验证。两者功能完全不重叠，可以在同一个客户端里同时配置、叠加使用：调试用 Firefox DevTools MCP，标签页和组整理用本项目。
+
 ## 常用命令
 
 ```bash

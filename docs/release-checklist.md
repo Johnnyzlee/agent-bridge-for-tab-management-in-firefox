@@ -11,6 +11,14 @@
 - [x] Extension, MCP package, Agent Skill, and AMO source archives rebuilt and integrity-checked.
 - [x] AMO source package rebuilt in a clean temporary directory and compared with the expected extension output.
 
+## v0.5.0 development (shared broker)
+
+- [x] Add the shared broker: first server instance becomes the broker (extension port + agent port 8767), later instances connect as authenticated clients.
+- [x] Multi-agent routing tests (response correlation, disconnect propagation, per-agent isolation, unauthenticated rejection).
+- [x] `FIREFOX_TABS_BRIDGE_BROKER_PORT` override and doctor broker-port check.
+- [ ] Live multi-agent verification with real Firefox (two MCP clients against one broker).
+- [ ] Submit v0.5.0 as an AMO unlisted version and verify the signed XPI.
+
 ## v0.4.0 development (automatic pairing)
 
 - [x] Remove the manual token entry from the extension options page and the generated token helpers.

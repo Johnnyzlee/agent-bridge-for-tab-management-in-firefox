@@ -18,7 +18,7 @@
 
 ### 1. 安装扩展
 
-从[最新 Release](https://github.com/Johnnyzlee/agent-bridge-for-tab-management-in-firefox/releases) 下载 `tab_management_agent_bridge_for_firefox-0.4.1.xpi`，用 Firefox 打开即可。
+从[最新 Release](https://github.com/Johnnyzlee/agent-bridge-for-tab-management-in-firefox/releases) 下载 `tab_management_agent_bridge_for_firefox-0.5.0.xpi`，用 Firefox 打开即可。
 
 ### 2. 运行一次 setup
 
@@ -144,6 +144,10 @@ Server 会自动从共享的本地配置读取端口和密钥。无需环境变�
 > 检查 Firefox bridge 状态，列出我的标签组，打开 https://example.com，并放入标题完全一致的 Research 组（不存在才创建），最后验证 group ID。
 
 或者打开扩展选项页：显示自动配置状态、连接状态和本地端口——没有其他需要配置的东西。
+
+## 多 Agent 同时连接
+
+共享 Broker 监听 `127.0.0.1:8767`，在单条 Firefox 连接上多路复用任意数量的 Agent。第一个启动的 MCP server 自动成为 Broker，其他实例自动以客户端身份接入——Claude Code、Hermes、OpenCLAW、Codex、OpenCode 可以同时管理同一个 Firefox 会话。每个客户端仍用本地配置中的同一个共享密钥认证；你的客户端配置完全不用改。
 
 ## 常用命令
 

@@ -6,6 +6,7 @@ import {
   BRIDGE_CONFIG_FILE,
   CONFIG_DIR_ENV,
   DEFAULT_BRIDGE_PORT,
+  DEFAULT_BROKER_PORT,
   EXTENSION_ID,
   MIN_TOKEN_LENGTH,
   NATIVE_HOST_NAME,
@@ -23,13 +24,14 @@ import {
   nativeHostManifest,
   nativeHostManifestPath,
   platformForCLI,
+  resolveBrokerPort,
   runCommand,
   saveBridgeConfig,
   verifyHostRegistration,
 } from "../shared/config.js";
 import { BRIDGE_PROTOCOL_VERSION } from "../shared/protocol.js";
 
-export const APP_VERSION = "0.4.1";
+export const APP_VERSION = "0.5.0";
 
 export interface SetupOptions {
   platform?: PlatformInfo;
@@ -310,6 +312,14 @@ export async function runDoctor(options: SetupOptions = {}): Promise<DoctorResul
   const tokenOverride = typeof env[TOKEN_ENV] === "string" ? "set (overrides the config file)" : "not set";
   const portOverride = typeof env[PORT_ENV] === "string" ? "set" : "not set";
   push("environment overrides", true, `${TOKEN_ENV}: ${tokenOverride}; ${PORT_ENV}: ${portOverride}`);
+
+  let brokerPort = DEFAULT_BROKER_PORT;
+  try {
+    brokerPort = resolveBrokerPort(env);
+    push("broker port", brokerPort >= 1 && brokerPort <= 65535, `port ${brokerPort}`);
+  } catch (error) {
+    push("broker port", false, error instanceof Error ? error.message : "invalid");
+  }
 
   return { checks };
 }

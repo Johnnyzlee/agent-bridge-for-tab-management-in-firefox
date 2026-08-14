@@ -3,8 +3,8 @@
 ## Components
 
 1. An AI agent, optionally guided by the Firefox Tab Manager Skill, starts Firefox Tab Management Agent MCP as a local stdio server.
-2. The MCP server reads the user-level bridge configuration (port, protocol version, token) and opens an authenticated WebSocket listener on `127.0.0.1`. `FIREFOX_TABS_BRIDGE_TOKEN` and `FIREFOX_TABS_BRIDGE_PORT` remain supported as explicit development/compatibility overrides.
-3. Tab Management Agent Bridge for Firefox requests its bridge configuration from the Native Messaging Host through Firefox's Native Messaging channel. Firefox only launches the host for extensions listed in the host manifest's `allowed_extensions`; the host additionally refuses to serve the configuration when its own registration does not authorize exactly `firefox-tabs-mcp@local.invalid`.
+2. The MCP server reads the user-level bridge configuration (port, protocol version, token) and either becomes the shared broker (first instance) or connects to the running broker as an authenticated client. `FIREFOX_TABS_BRIDGE_TOKEN`, `FIREFOX_TABS_BRIDGE_PORT`, and `FIREFOX_TABS_BRIDGE_BROKER_PORT` remain supported as explicit development/compatibility overrides.
+3. Tab Management Agent Bridge for Firefox requests its bridge configuration from the Native Messaging Host through Firefox's Native Messaging channel. Firefox only launches the host for extensions listed in the host manifest's `allowed_extensions`; the host additionally refuses to serve the configuration when its own registration does not authorize exactly `firefox-tabs-mcp@local.invalid` or the calling extension's ID does not match.
 4. The extension caches the received configuration in `browser.storage.local` (falling back to it when the host is temporarily unavailable), connects to the configured port, and authenticates with the shared token.
 5. The extension performs a small fixed set of operations through Firefox's `tabs` and `tabGroups` APIs.
 6. Write operations read the resulting browser state before reporting success.
@@ -12,11 +12,14 @@
 ```mermaid
 flowchart LR
     A["AI agent + optional Skill"] -->|"stdio"| B["Firefox Tab Management Agent MCP"]
-    B <-->|"127.0.0.1 WebSocket\nshared token"| C["Tab Management Agent Bridge for Firefox"]
+    B <-->|"127.0.0.1 WebSocket\nagent port (8767)"| G["Shared Broker"]
+    G <-->|"127.0.0.1 WebSocket\nshared token"| C["Tab Management Agent Bridge for Firefox"]
     C <-->|"Firefox Native Messaging\n(length-prefixed JSON)"| E["Native Messaging Host"]
     C <-->|"tabs + tabGroups APIs"| D["Firefox"]
     B <-->|"reads\nbridge.json"| F["User-level bridge config"]
     E <-->|"reads\nbridge.json"| F
+    A2["Second AI agent"] -->|"stdio"| B2["Firefox Tab Management Agent MCP"]
+    B2 <-->|"agent port (8767)"| G
 ```
 
 ## User-level bridge configuration
@@ -53,6 +56,10 @@ Selectors use a tab ID, exact URL, or exact title. Ambiguous matches are returne
 
 Open-tab metadata crosses from Firefox into the local MCP process and then to the invoking MCP client. It is not sent to a project-operated service. See [the privacy policy](../PRIVACY.md) for the complete disclosure.
 
+## Shared broker and multiple agents
+
+Since 0.5.0, a shared broker multiplexes any number of MCP agents over the single Firefox connection. The broker listens on two loopback ports: the extension port (`8765`) for the Firefox extension, and the agent port (`8767`, override with `FIREFOX_TABS_BRIDGE_BROKER_PORT`) for MCP server instances. The first server instance to start becomes the broker; later instances detect the occupied ports and connect to the broker as authenticated clients, routing requests through it to the extension. The extension itself is unchanged and still holds one WebSocket connection. Every agent authenticates with the same shared token from the user-level configuration, so no per-client secrets exist.
+
 ## Current limitations
 
-Version 0.4.0 retains the server-per-client architecture and one configurable bridge port: only one MCP client can own that port at a time, and competing instances fail to bind rather than sharing the connection. A future shared broker/daemon could multiplex multiple authenticated MCP clients while keeping the Firefox connection local. The bridge is not intended to be exposed through port forwarding, containers with public port mappings, or non-loopback proxies.
+The broker keeps all traffic on loopback and authenticates every connection (extension origin check plus timing-safe token comparison, agent token comparison). Agent connections are not individually scoped: any client that holds the shared token can request the exposed operations, exactly as in previous versions. A future version could issue per-client credentials or scope tools per agent. The bridge is not intended to be exposed through port forwarding, containers with public port mappings, or non-loopback proxies.

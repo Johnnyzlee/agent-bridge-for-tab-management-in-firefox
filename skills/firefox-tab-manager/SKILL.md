@@ -84,9 +84,9 @@ Window identity matters: groups and titles are per-window.
 
 When the user asks to upgrade ("升级 firefox-tabs", "update the bridge"):
 
-1. Run `bash scripts/upgrade.sh` from the repository root (pull, rebuild, restart Hermes when present, open the newest signed XPI).
+1. Run `bash scripts/upgrade.sh` from the repository root. It pulls the latest code, rebuilds, restarts Hermes when present, opens the newest signed XPI in Firefox, and syncs this skill to every host where it is already installed (`~/.hermes/skills`, Codex, `~/.claude/skills`, opencode, OpenClaw).
 2. Ask the user to confirm the Firefox install prompt — this step cannot be automated.
-3. Tell the user how to refresh the other connected MCP clients so they load the new server build: OpenClaw via `openclaw mcp reload` (or restart its gateway); Claude Code, Codex, opencode, and WorkBuddy by restarting the client or its session. Their configs do not change.
+3. Tell the user how to refresh the other connected MCP clients so they load the new server build: OpenClaw via `openclaw mcp reload` (or restart its gateway); Claude Code, Codex, opencode, and WorkBuddy by restarting the client or its session. Their configs do not change. Skills load at session start, so a new session also picks up this skill's update.
 4. Run `npm run doctor` and confirm the extension options page shows "Auto-detected (Native Messaging)" and "Connected".
 
 Do not claim the upgrade finished while any client or the extension still runs the old build.

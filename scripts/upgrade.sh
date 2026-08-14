@@ -55,6 +55,28 @@ fi
 echo "[6/6] Opening the signed XPI in Firefox. Confirm the installation prompt."
 open -a Firefox "$XPI"
 
+echo "[7/7] Syncing the Agent Skill to hosts where it is already installed..."
+SKILL_SRC="skills/firefox-tab-manager"
+SYNCED=""
+for dir in \
+  "${HOME}/.hermes/skills" \
+  "${CODEX_HOME:-${HOME}/.codex}/skills" \
+  "${HOME}/.claude/skills" \
+  "${HOME}/.config/opencode/skills" \
+  "${HOME}/.openclaw/skills"; do
+  if [ -d "${dir}/firefox-tab-manager" ]; then
+    rm -rf "${dir}/firefox-tab-manager"
+    cp -R "$SKILL_SRC" "${dir}/"
+    echo "      Updated: ${dir}/firefox-tab-manager"
+    SYNCED=1
+  fi
+done
+if [ -z "$SYNCED" ]; then
+  echo "      No existing skill install found; skipping (install it manually if wanted)."
+else
+  echo "      Note: skills load at session start — restart the agent's session to pick up the update."
+fi
+
 echo ""
-echo "Done. After you confirm the Firefox install and restart your clients,"
+echo "Done. After you confirm the Firefox install and refresh your clients,"
 echo "verify with: npm run doctor"

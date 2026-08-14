@@ -32,6 +32,7 @@ export interface BrowserTab {
   active: boolean;
   pinned: boolean;
   muted?: boolean;
+  audible?: boolean;
   title?: string;
   url?: string;
 }
@@ -85,6 +86,7 @@ export interface PublicTab {
   active: boolean;
   pinned: boolean;
   muted: boolean;
+  audible: boolean;
   title: string;
   url: string;
 }
@@ -101,6 +103,7 @@ function publicTab(tab: BrowserTab): PublicTab {
     active: tab.active,
     pinned: tab.pinned,
     muted: tab.muted ?? false,
+    audible: tab.audible ?? false,
     title: tab.title ?? "",
     url: tab.url ?? "",
   };

@@ -661,6 +661,16 @@ describe("FirefoxTabController", () => {
     expect(browser.moveToWindowCalls).toEqual([{ tabId: 10, windowId: 2 }]);
   });
 
+  it("reports the audible state of tabs", async () => {
+    const playingTab: BrowserTab = { ...targetTab, audible: true };
+    const browser = createBrowser([playingTab], []);
+    const controller = new FirefoxTabController(browser);
+    const active = await controller.getActiveTab();
+    expect(active.tab?.audible).toBe(true);
+    const listed = await controller.listTabs();
+    expect(listed.tabs[0]?.audible).toBe(true);
+  });
+
   it("returns the active tab of the focused window", async () => {
     const browser = createBrowser([targetTab], []);
     const controller = new FirefoxTabController(browser);

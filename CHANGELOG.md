@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [0.4.1] - 2026-08-15
+
+- Switch the extension options page UI from Chinese to English (status labels, buttons, and background error messages).
+- Rebuild and re-sign the extension as v0.4.1 through the AMO unlisted channel.
+
 ## [0.4.0] - 2026-08-15
 
 - Publish v0.4.0 as an AMO-signed XPI through the automatic unlisted-channel signing service (public listed review still pending).

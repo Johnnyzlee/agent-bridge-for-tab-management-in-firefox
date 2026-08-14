@@ -113,7 +113,7 @@ async function refreshConfig(): Promise<void> {
   if (config === undefined) {
     currentConfig = undefined;
     connectionState = "not_configured";
-    lastError = "未检测到本地桥接组件，请在项目目录运行 npm run setup。";
+    lastError = "No local bridge component detected. Run `npm run setup` in the project directory.";
     return;
   }
   const changed =
@@ -228,7 +228,7 @@ browser.storage.onChanged.addListener((changes, area) => {
     currentConfig = config;
     if (config === undefined) {
       connectionState = "not_configured";
-      lastError = "未检测到本地桥接组件，请在项目目录运行 npm run setup。";
+      lastError = "No local bridge component detected. Run `npm run setup` in the project directory.";
       return;
     }
     lastError = "";

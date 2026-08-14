@@ -11,12 +11,25 @@ describe("extension assets", () => {
     expect(html).not.toMatch(/id=["']token["']/);
     expect(html).not.toMatch(/生成令牌/);
     expect(html).not.toMatch(/复制令牌/);
-    expect(html).toContain("重新连接");
-    expect(html).toContain("修复 / 重新检测本地安装");
+    expect(html).toContain("Reconnect");
+    expect(html).toContain("Repair / re-detect local install");
 
     const js = await readFile(path.join(repoRoot, "extension", "options.js"), "utf8");
     expect(js).not.toMatch(/bridgeToken/);
     expect(js).not.toMatch(/generateToken/);
+  });
+
+  it("uses English for the options page UI", async () => {
+    const html = await readFile(path.join(repoRoot, "extension", "options.html"), "utf8");
+    expect(html).toContain("Connection status");
+    expect(html).toContain("Auto configuration");
+    expect(html).toContain("MCP Server connection");
+    expect(html).not.toMatch(/[\u4e00-\u9fff]/);
+    const js = await readFile(path.join(repoRoot, "extension", "options.js"), "utf8");
+    expect(js).toContain('return "Connected"');
+    expect(js).not.toMatch(/[\u4e00-\u9fff]/);
+    const background = await readFile(path.join(repoRoot, "extension", "background.ts"), "utf8");
+    expect(background).not.toMatch(/[\u4e00-\u9fff]/);
   });
 
   it("declares nativeMessaging permission and keeps the stable Gecko ID", async () => {
@@ -25,7 +38,7 @@ describe("extension assets", () => {
     expect(manifest.permissions).toContain("tabs");
     expect(manifest.permissions).toContain("tabGroups");
     expect(manifest.browser_specific_settings.gecko.id).toBe("firefox-tabs-mcp@local.invalid");
-    expect(manifest.version).toBe("0.4.0");
+    expect(manifest.version).toBe("0.4.1");
     expect(manifest.content_security_policy).toContain("ws://127.0.0.1:*");
   });
 

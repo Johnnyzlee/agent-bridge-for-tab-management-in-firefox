@@ -18,7 +18,7 @@ Everything runs locally. No accounts, no cloud, no telemetry.
 
 ### 1. Install the extension
 
-Download `tab_management_agent_bridge_for_firefox-0.4.0.xpi` from the [latest release](https://github.com/Johnnyzlee/agent-bridge-for-tab-management-in-firefox/releases) and open it with Firefox.
+Download `tab_management_agent_bridge_for_firefox-0.4.1.xpi` from the [latest release](https://github.com/Johnnyzlee/agent-bridge-for-tab-management-in-firefox/releases) and open it with Firefox.
 
 ### 2. Run setup once
 

@@ -6,24 +6,24 @@ const error = document.querySelector("#error");
 function statusText(value) {
   switch (value) {
     case "connected":
-      return "已连接";
+      return "Connected";
     case "connecting":
-      return "连接中……";
+      return "Connecting…";
     case "disconnected":
-      return "已断开";
+      return "Disconnected";
     default:
-      return "未配置";
+      return "Not configured";
   }
 }
 
 function autoConfigText(value) {
   switch (value) {
     case "native":
-      return "已自动获取（Native Messaging）";
+      return "Auto-detected (Native Messaging)";
     case "cached":
-      return "使用本地缓存";
+      return "Using local cache";
     default:
-      return "未检测到本地桥接组件，请在项目目录运行 npm run setup。";
+      return "No local bridge component detected. Run `npm run setup` in the project directory.";
   }
 }
 

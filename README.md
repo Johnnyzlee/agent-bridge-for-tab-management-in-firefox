@@ -14,6 +14,42 @@ Everything runs locally. No accounts, no cloud, no telemetry.
 - Refuses ambiguous matches, duplicate group names, cross-window grouping, and unpinning without your OK.
 - Verifies every change against Firefox before reporting success.
 
+## What you can do with it
+
+### Collect now, read later
+
+You find articles, docs, and research links while browsing a feed, chatting, or working on another device. Instead of opening and organizing every page yourself, send the URLs to your agent:
+
+> Open these URLs in Firefox in the background and put every new tab in a group named "Reading Queue" (create it only if missing).
+
+Pages open without stealing focus and stay together in one group. Later, sit down and work through the group as a focused reading queue. Firefox tab groups become your inbox for the web — less clutter, fewer context switches, and zero manual organizing.
+
+### Organize research as you go
+
+While reading a feed or working across topics, send links in small batches:
+
+> Open these three articles in the background and group them as "Research".
+
+Each topic gets its own tidy group without interrupting what you are doing.
+
+### Regroup with one sentence
+
+Changed your mind about the structure? Just say so:
+
+> Move every tab from the "Trading" group into "Investing".
+
+The agent moves tabs with exact matching and verifies the final group IDs — no drag-and-drop across a sea of tabs.
+
+### Reset when a task is done
+
+> Ungroup everything in this window.
+
+One sentence returns the browser to a clean state. Every move is checked against Firefox before it is reported back to you.
+
+### Recurring routines
+
+Make it a habit: throughout the day, send article links, docs, and reference pages to your agent. It files them into the right group automatically, so your tabs stay organized with no manual effort at all.
+
 ## Install in three steps
 
 ### 1. Install the extension
@@ -68,7 +104,7 @@ mcp_servers:
 
 Then restart Hermes (`hermes gateway restart`).
 
-#### OpenCLAW
+#### OpenClaw
 
 Add to `~/.openclaw/openclaw.json`:
 
@@ -147,7 +183,7 @@ Or open the extension's options page: it shows the auto-configuration status, co
 
 ## Multiple agents at once
 
-A shared broker on `127.0.0.1:8767` multiplexes any number of agents over the single Firefox connection. The first MCP server you start becomes the broker; every other server instance automatically connects to it as a client — so Claude Code, Hermes, OpenCLAW, Codex, and OpenCode can all manage the same Firefox session simultaneously. Each client still authenticates with the same shared secret from the local configuration; nothing else changes in your client configs.
+A shared broker on `127.0.0.1:8767` multiplexes any number of agents over the single Firefox connection. The first MCP server you start becomes the broker; every other server instance automatically connects to it as a client — so Claude Code, Hermes, OpenClaw, Codex, and OpenCode can all manage the same Firefox session simultaneously. Each client still authenticates with the same shared secret from the local configuration; nothing else changes in your client configs.
 
 ## Useful commands
 
@@ -157,14 +193,6 @@ npm run doctor            # check config, permissions, and Native Host registrat
 npm run uninstall         # remove the Native Host registration (keeps config)
 npm run uninstall --purge # also delete the local configuration
 ```
-
-## Example workflow: collect now, read later
-
-Send URLs to your agent while browsing:
-
-> Open these URLs in Firefox in the background and put them in a group named "Reading Queue" (create it only if missing).
-
-Pages open without stealing focus and stay organized. Later, work through the group as a focused reading queue.
 
 ## Privacy & security
 

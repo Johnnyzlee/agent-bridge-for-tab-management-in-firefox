@@ -4,6 +4,15 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [0.5.5] - 2026-08-15
+
+- Add `pin_firefox_tab` / `unpin_firefox_tab` (verified pinned state) and `duplicate_firefox_tab` (verified duplicate).
+- Add `set_firefox_tab_group_color` (validated color set) and `move_firefox_tab_to_window` (bare cross-window move, optional index).
+- Add `open_firefox_tabs_into_group`: atomic batch open-and-group (creates the group only if missing) with rollback of opened tabs on failure.
+- Add `move_firefox_tabs_to_group`: batch move into one exact group with one overall verification (cross-window with explicit windowId).
+- Add `get_active_firefox_tab` and event-driven `wait_for_firefox_tab` (the extension pushes `tabs.onUpdated` completions to the broker; waiting agents are answered instantly when the event arrives).
+- Rebuild and re-sign the extension as v0.5.5 through the AMO unlisted channel.
+
 ## [0.5.4] - 2026-08-15
 
 - Add `list_firefox_windows`: per-window tab and group counts with each group's title, collapsed state, and size — the target-picker for cross-window moves.

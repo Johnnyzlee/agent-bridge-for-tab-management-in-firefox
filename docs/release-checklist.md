@@ -11,6 +11,14 @@
 - [x] Extension, MCP package, Agent Skill, and AMO source archives rebuilt and integrity-checked.
 - [x] AMO source package rebuilt in a clean temporary directory and compared with the expected extension output.
 
+## v0.5.5 development (pin/duplicate/color/batch/wait)
+
+- [x] `pin_firefox_tab`, `unpin_firefox_tab`, `duplicate_firefox_tab`, `set_firefox_tab_group_color`.
+- [x] `move_firefox_tab_to_window`, `open_firefox_tabs_into_group` (rollback), `move_firefox_tabs_to_group`.
+- [x] `get_active_firefox_tab`, event-driven `wait_for_firefox_tab` (extension onUpdated push).
+- [x] Tests (122 total).
+- [ ] Submit v0.5.5 as an AMO unlisted version and verify the signed XPI.
+
 ## v0.5.3 development (list windows)
 
 - [x] `list_firefox_windows` with per-window tab/group counts and group sizes.

@@ -11,12 +11,17 @@ import {
   type ListGroupsParams,
   type ListTabsParams,
   type MergeTabGroupsParams,
-  type NewWindowParams,
   type MoveTabToGroupParams,
+  type MoveTabToWindowParams,
+  type MoveTabsToGroupParams,
+  type NewWindowParams,
   type OpenTabParams,
+  type OpenTabsIntoGroupParams,
   type RenameTabGroupParams,
   type RepositionTabParams,
   type SetTabGroupCollapsedParams,
+  type SetTabGroupColorParams,
+  type TabSelector,
   type UngroupTabParams,
 } from "../shared/protocol.js";
 
@@ -36,6 +41,13 @@ declare const browser: BrowserApi & {
     };
     onChanged: {
       addListener(listener: (changes: Record<string, unknown>, area: string) => void): void;
+    };
+  };
+  tabs: {
+    onUpdated: {
+      addListener(
+        listener: (tabId: number, changeInfo: { status?: string }, tab: { url?: string; title?: string }) => void,
+      ): void;
     };
   };
   runtime: {
@@ -159,6 +171,10 @@ async function dispatch(request: BridgeRequest): Promise<unknown> {
       return controller.moveTabToGroup(request.params as MoveTabToGroupParams);
     case "move_tab":
       return controller.repositionTab(request.params as RepositionTabParams);
+    case "move_tab_to_window":
+      return controller.moveTabToWindow(request.params as MoveTabToWindowParams);
+    case "move_tabs_to_group":
+      return controller.moveTabsToGroup(request.params as MoveTabsToGroupParams);
     case "close_tabs":
       return controller.closeTabs(request.params as CloseTabsParams);
     case "close_tab_group":
@@ -169,6 +185,18 @@ async function dispatch(request: BridgeRequest): Promise<unknown> {
       return controller.renameTabGroup(request.params as RenameTabGroupParams);
     case "set_tab_group_collapsed":
       return controller.setTabGroupCollapsed(request.params as SetTabGroupCollapsedParams);
+    case "set_tab_group_color":
+      return controller.setTabGroupColor(request.params as SetTabGroupColorParams);
+    case "open_tabs_into_group":
+      return controller.openTabsIntoGroup(request.params as OpenTabsIntoGroupParams);
+    case "get_active_tab":
+      return controller.getActiveTab();
+    case "pin_tab":
+      return controller.pinTab(request.params as TabSelector);
+    case "unpin_tab":
+      return controller.unpinTab(request.params as TabSelector);
+    case "duplicate_tab":
+      return controller.duplicateTab(request.params as TabSelector);
     case "ungroup_tab":
       return controller.ungroupTab(request.params as UngroupTabParams);
   }
@@ -285,6 +313,18 @@ browser.runtime.onMessage.addListener((message) => {
     }
   }
   return undefined;
+});
+
+browser.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
+  if (changeInfo.status !== "complete") return;
+  if (!socket || socket.readyState !== WebSocket.OPEN) return;
+  socket.send(
+    JSON.stringify({
+      type: "event",
+      event: "tab_complete",
+      data: { tabId, url: tab.url ?? "", title: tab.title ?? "" },
+    }),
+  );
 });
 
 void start();

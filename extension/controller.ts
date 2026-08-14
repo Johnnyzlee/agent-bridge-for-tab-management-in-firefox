@@ -7,11 +7,15 @@ import type {
   ListTabsParams,
   MergeTabGroupsParams,
   MoveTabToGroupParams,
+  MoveTabToWindowParams,
+  MoveTabsToGroupParams,
   NewWindowParams,
   OpenTabParams,
+  OpenTabsIntoGroupParams,
   RenameTabGroupParams,
   RepositionTabParams,
   SetTabGroupCollapsedParams,
+  SetTabGroupColorParams,
   TabSelector,
   UngroupTabParams,
 } from "../shared/protocol.js";
@@ -53,14 +57,15 @@ export interface BrowserApi {
     ungroup(tabIds: number | number[]): Promise<void>;
     update(tabId: number, updateProperties: { pinned: boolean }): Promise<BrowserTab>;
     move(tabId: number, moveProperties: { index: number }): Promise<BrowserTab>;
-    moveToWindow(tabId: number, windowId: number): Promise<BrowserTab>;
+    moveToWindow(tabId: number, windowId: number, moveProperties?: { index?: number }): Promise<BrowserTab>;
     remove(tabIds: number[]): Promise<void>;
+    duplicate(tabId: number): Promise<BrowserTab>;
   };
   tabGroups: {
     query(queryInfo: Record<string, unknown>): Promise<BrowserTabGroup[]>;
     update(
       groupId: number,
-      updateProperties: { title?: string; collapsed?: boolean },
+      updateProperties: { title?: string; collapsed?: boolean; color?: string },
     ): Promise<BrowserTabGroup>;
     remove(groupId: number): Promise<void>;
   };
@@ -652,5 +657,249 @@ export class FirefoxTabController {
       });
     }
     return { changed: true, before, after };
+  }
+
+  async pinTab(selector: TabSelector): Promise<{ changed: boolean; before: PublicTab; after: PublicTab }> {
+    const tab = await this.resolveTab(selector);
+    const before = publicTab(tab);
+    if (tab.pinned) return { changed: false, before, after: before };
+    const after = publicTab(await this.browserApi.tabs.update(before.id, { pinned: true }));
+    if (!after.pinned) {
+      throw new FirefoxTabsError("VERIFICATION_FAILED", "Firefox did not report the tab as pinned.", { after });
+    }
+    return { changed: true, before, after };
+  }
+
+  async unpinTab(selector: TabSelector): Promise<{ changed: boolean; before: PublicTab; after: PublicTab }> {
+    const tab = await this.resolveTab(selector);
+    const before = publicTab(tab);
+    if (!tab.pinned) return { changed: false, before, after: before };
+    const after = publicTab(await this.browserApi.tabs.update(before.id, { pinned: false }));
+    if (after.pinned) {
+      throw new FirefoxTabsError("VERIFICATION_FAILED", "Firefox did not report the tab as unpinned.", { after });
+    }
+    return { changed: true, before, after };
+  }
+
+  async duplicateTab(selector: TabSelector): Promise<{
+    changed: boolean;
+    before: PublicTab;
+    after: PublicTab;
+  }> {
+    const tab = await this.resolveTab(selector);
+    const before = publicTab(tab);
+    const duplicated = publicTab(await this.browserApi.tabs.duplicate(before.id));
+    if (duplicated.url !== before.url || duplicated.windowId !== before.windowId) {
+      throw new FirefoxTabsError("VERIFICATION_FAILED", "Firefox did not report the expected duplicate tab.", {
+        expectedUrl: before.url,
+        expectedWindowId: before.windowId,
+        after: duplicated,
+      });
+    }
+    return { changed: true, before, after: duplicated };
+  }
+
+  async setTabGroupColor(params: SetTabGroupColorParams): Promise<{
+    changed: boolean;
+    before: BrowserTabGroup;
+    after: BrowserTabGroup;
+  }> {
+    const colors = ["blue", "red", "yellow", "green", "pink", "purple", "cyan", "orange", "grey"];
+    if (!colors.includes(params.color)) {
+      throw new FirefoxTabsError("INVALID_GROUP_COLOR", `color must be one of: ${colors.join(", ")}.`);
+    }
+    const group = await this.findGroupByTitle(params.groupTitle, params.windowId);
+    if (group.color === params.color) {
+      return { changed: false, before: group, after: group };
+    }
+    const after = await this.browserApi.tabGroups.update(group.id, { color: params.color });
+    if (after.color !== params.color || after.id !== group.id) {
+      throw new FirefoxTabsError("VERIFICATION_FAILED", "Firefox did not report the expected group color.", {
+        expected: { groupId: group.id, color: params.color },
+        after,
+      });
+    }
+    return { changed: true, before: group, after };
+  }
+
+  async moveTabToWindow(params: MoveTabToWindowParams): Promise<{
+    changed: boolean;
+    before: PublicTab;
+    after: PublicTab;
+  }> {
+    if (!Number.isInteger(params.windowId) || params.windowId <= 0) {
+      throw new FirefoxTabsError("INVALID_WINDOW_ID", "windowId must be a positive integer.");
+    }
+    if (params.index !== undefined && (!Number.isInteger(params.index) || params.index < -1)) {
+      throw new FirefoxTabsError("INVALID_TAB_INDEX", "index must be -1 (end of window) or a non-negative integer.");
+    }
+    const tab = await this.resolveTab(params.selector);
+    const before = publicTab(tab);
+    if (tab.windowId === params.windowId && params.index === undefined) {
+      return { changed: false, before, after: before };
+    }
+    await this.browserApi.tabs.moveToWindow(
+      before.id,
+      params.windowId,
+      params.index === undefined ? {} : { index: params.index },
+    );
+    const after = publicTab(await this.browserApi.tabs.get(before.id));
+    if (after.windowId !== params.windowId) {
+      throw new FirefoxTabsError("VERIFICATION_FAILED", "Firefox did not report the expected window after moving the tab.", {
+        expectedWindowId: params.windowId,
+        after,
+      });
+    }
+    return { changed: true, before, after };
+  }
+
+  async getActiveTab(): Promise<{ tab: PublicTab | null }> {
+    const tabs = await this.browserApi.tabs.query({ active: true, lastFocusedWindow: true });
+    return { tab: tabs.length > 0 ? publicTab(tabs[0]!) : null };
+  }
+
+  async openTabsIntoGroup(params: OpenTabsIntoGroupParams): Promise<{
+    tabs: PublicTab[];
+    group: BrowserTabGroup;
+    created: boolean;
+  }> {
+    if (params.urls.length === 0) {
+      throw new FirefoxTabsError("INVALID_URL", "urls must contain at least one URL.");
+    }
+    const urls = params.urls.map((raw) => {
+      let url: URL;
+      try {
+        url = new URL(raw);
+      } catch {
+        throw new FirefoxTabsError("INVALID_URL", "url must be a complete, valid URL.", { url: raw });
+      }
+      if (url.protocol !== "http:" && url.protocol !== "https:") {
+        throw new FirefoxTabsError("UNSUPPORTED_URL_SCHEME", "Only http:// and https:// URLs can be opened.", {
+          protocol: url.protocol,
+        });
+      }
+      return url.href;
+    });
+
+    let group: BrowserTabGroup | undefined;
+    let created = false;
+    try {
+      group = await this.findGroupByTitle(params.groupTitle, params.windowId);
+    } catch (error) {
+      if (error instanceof FirefoxTabsError && error.code === "GROUP_NOT_FOUND") {
+        group = undefined;
+      } else {
+        throw error;
+      }
+    }
+
+    const opened: BrowserTab[] = [];
+    try {
+      for (const url of urls) {
+        const createdTab = await this.browserApi.tabs.create({
+          url,
+          active: false,
+          ...(params.windowId === undefined ? {} : { windowId: params.windowId }),
+        });
+        opened.push(createdTab);
+      }
+      const ids = opened.map((tab) => publicTab(tab).id);
+      if (group !== undefined) {
+        await this.browserApi.tabs.group({ tabIds: ids, groupId: group.id });
+      } else {
+        const targetWindowId = params.windowId ?? publicTab(opened[0]!).windowId;
+        const newGroupId = await this.browserApi.tabs.group({
+          tabIds: ids,
+          createProperties: { windowId: targetWindowId },
+        });
+        group = await this.browserApi.tabGroups.update(newGroupId, {
+          title: params.groupTitle,
+          ...(params.collapsed === undefined ? {} : { collapsed: params.collapsed }),
+        });
+        created = true;
+      }
+    } catch (error) {
+      try {
+        if (opened.length > 0) {
+          await this.browserApi.tabs.remove(opened.map((tab) => publicTab(tab).id));
+        }
+      } catch {
+        // Preserve the original error; the caller must treat the operation as unverified.
+      }
+      throw error;
+    }
+
+    const tabs = (await Promise.all(opened.map((tab) => this.browserApi.tabs.get(publicTab(tab).id)))).map(publicTab);
+    if (group === undefined || tabs.some((tab) => tab.groupId !== group.id)) {
+      throw new FirefoxTabsError("VERIFICATION_FAILED", "Firefox did not report the expected group after opening the tabs.", {
+        expectedGroupId: group?.id,
+        tabs,
+      });
+    }
+    return { tabs, group, created };
+  }
+
+  async moveTabsToGroup(params: MoveTabsToGroupParams): Promise<{
+    changed: boolean;
+    before: PublicTab[];
+    after: PublicTab[];
+    group: BrowserTabGroup;
+  }> {
+    if (params.tabIds.length === 0) {
+      throw new FirefoxTabsError("INVALID_TAB_IDS", "tabIds must contain at least one tab ID.");
+    }
+    if (params.tabIds.some((tabId) => !Number.isInteger(tabId) || tabId <= 0)) {
+      throw new FirefoxTabsError("INVALID_TAB_IDS", "Every tab ID must be a positive integer.");
+    }
+    if (new Set(params.tabIds).size !== params.tabIds.length) {
+      throw new FirefoxTabsError("INVALID_TAB_IDS", "tabIds must not contain duplicates.");
+    }
+    if (params.windowId !== undefined && (!Number.isInteger(params.windowId) || params.windowId <= 0)) {
+      throw new FirefoxTabsError("INVALID_WINDOW_ID", "windowId must be a positive integer.");
+    }
+
+    const before = await Promise.all(
+      params.tabIds.map((tabId) => this.browserApi.tabs.get(tabId).catch(() => undefined)),
+    );
+    if (before.some((tab) => tab === undefined)) {
+      throw new FirefoxTabsError("TAB_NOT_FOUND", "At least one requested tab does not exist.", {
+        tabIds: params.tabIds,
+      });
+    }
+    const publicBefore = before.map((tab) => publicTab(tab!));
+    const targetWindowId = params.windowId ?? publicBefore[0]!.windowId;
+    const group = await this.findGroupByTitle(params.groupTitle, targetWindowId);
+
+    const pinned = publicBefore.filter((tab) => tab.pinned);
+    if (pinned.length > 0 && !params.allowUnpin) {
+      throw new FirefoxTabsError(
+        "PINNED_TAB_REQUIRES_CONFIRMATION",
+        "Grouping these tabs would unpin them. Retry with allowUnpin=true only after explicit confirmation.",
+        { tabs: pinned },
+      );
+    }
+
+    const alreadyInGroup = publicBefore.filter(
+      (tab) => tab.groupId === group.id && tab.windowId === group.windowId,
+    );
+    if (alreadyInGroup.length === publicBefore.length) {
+      return { changed: false, before: publicBefore, after: publicBefore, group };
+    }
+
+    for (const tab of publicBefore) {
+      if (tab.windowId !== group.windowId) {
+        await this.browserApi.tabs.moveToWindow(tab.id, group.windowId);
+      }
+    }
+    await this.browserApi.tabs.group({ tabIds: publicBefore.map((tab) => tab.id), groupId: group.id });
+    const after = (await Promise.all(publicBefore.map((tab) => this.browserApi.tabs.get(tab.id)))).map(publicTab);
+    if (after.some((tab) => tab.groupId !== group.id || tab.windowId !== group.windowId)) {
+      throw new FirefoxTabsError("VERIFICATION_FAILED", "Firefox did not report the expected group after moving the tabs.", {
+        expectedGroupId: group.id,
+        expectedWindowId: group.windowId,
+        tabs: after,
+      });
+    }
+    return { changed: true, before: publicBefore, after, group };
   }
 }

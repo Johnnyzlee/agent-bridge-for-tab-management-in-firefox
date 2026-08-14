@@ -8,8 +8,17 @@ export type BridgeMethod =
   | "open_tab"
   | "create_tab_group"
   | "move_tab_to_group"
+  | "move_tabs_to_group"
   | "move_tab"
+  | "move_tab_to_window"
   | "ungroup_tab"
+  | "pin_tab"
+  | "unpin_tab"
+  | "duplicate_tab"
+  | "set_tab_group_color"
+  | "open_tabs_into_group"
+  | "wait_tab"
+  | "get_active_tab"
   | "close_tabs"
   | "close_tab_group"
   | "merge_tab_groups"
@@ -71,6 +80,38 @@ export interface MoveTabToGroupParams {
 export interface RepositionTabParams {
   selector: TabSelector;
   index: number;
+}
+
+export interface MoveTabsToGroupParams {
+  tabIds: number[];
+  groupTitle: string;
+  windowId?: number;
+  allowUnpin?: boolean;
+}
+
+export interface MoveTabToWindowParams {
+  selector: TabSelector;
+  windowId: number;
+  index?: number;
+}
+
+export interface OpenTabsIntoGroupParams {
+  urls: string[];
+  groupTitle: string;
+  windowId?: number;
+  collapsed?: boolean;
+  allowUnpin?: boolean;
+}
+
+export interface WaitTabParams {
+  tabId: number;
+  timeoutMs?: number;
+}
+
+export interface SetTabGroupColorParams {
+  groupTitle: string;
+  color: string;
+  windowId?: number;
 }
 
 export interface CloseTabsParams {

@@ -3,9 +3,9 @@ set -e
 
 # Upgrade Agent Bridge for Tab Management in Firefox from source.
 # Usage: bash scripts/upgrade.sh
-# Steps: pull latest code, rebuild, restart the Hermes MCP server (if Hermes
-# is present), open the newest signed XPI in Firefox, and run doctor.
-# The Firefox installation prompt is the only manual step (browser security).
+# Steps: pull latest code, rebuild, restart clients we can (Hermes), open
+# the newest signed XPI in Firefox, and run doctor. The Firefox install
+# prompt and restarting non-Hermes clients are the manual parts.
 
 REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$REPO_ROOT"
@@ -23,12 +23,20 @@ npm run build
 VERSION="$(node -p "require('./package.json').version")"
 echo "[4/6] Version: ${VERSION}"
 
+echo "[5/6] Restarting MCP clients..."
+RESTARTED=""
 if command -v hermes >/dev/null 2>&1; then
-  echo "[5/6] Restarting the Hermes MCP server so the new build becomes the broker..."
-  hermes gateway restart
-else
-  echo "[5/6] Hermes not found on PATH; restart your MCP clients manually."
+  hermes gateway restart || true
+  RESTARTED="Hermes"
 fi
+if [ -n "$RESTARTED" ]; then
+  echo "      Restarted: ${RESTARTED} (becomes the shared broker with the new build)."
+else
+  echo "      No Hermes CLI found; no client restarted automatically."
+fi
+echo "      Manual step: restart any other connected MCP clients"
+echo "      (Claude Code, Codex, OpenClaw, opencode, WorkBuddy, ...) so they"
+echo "      load the new server build. Their configs do not change."
 
 XPI="packages/tab_management_agent_bridge_for_firefox-${VERSION}.xpi"
 if [ ! -f "$XPI" ]; then
@@ -46,5 +54,5 @@ echo "[6/6] Opening the signed XPI in Firefox. Confirm the installation prompt."
 open -a Firefox "$XPI"
 
 echo ""
-echo "Done. After you confirm the Firefox install, verify with:"
-echo "  npm run doctor"
+echo "Done. After you confirm the Firefox install and restart your clients,"
+echo "verify with: npm run doctor"

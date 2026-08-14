@@ -49,6 +49,18 @@ Keep `ignoreUrlFragment` false unless the user explicitly wants URL fragments ig
 - Use `list_firefox_tab_groups` to inspect exact group names; pass `windowId` when known.
 - Use `ungroup_firefox_tab` with the same exact selector rules. Report `changed: false` when the tab was already ungrouped.
 
+## Upgrade the bridge
+
+When the user asks to upgrade the bridge (e.g. "升级 firefox-tabs" / "update the bridge to the latest version"):
+
+1. Run `bash scripts/upgrade.sh` from the repository root.
+2. The script pulls the latest `main`, rebuilds the server/native host/extension, downloads the newest AMO-signed XPI, and opens it in Firefox.
+3. Ask the user to confirm the Firefox installation prompt (browser security; this step cannot be automated).
+4. The script restarts Hermes automatically when the `hermes` CLI exists. Tell the user to restart every other connected MCP client (Claude Code, Codex, OpenClaw, opencode, WorkBuddy, ...) so they load the new server build — their client configs do not change.
+5. Run `npm run doctor` and report the result, then confirm the extension options page shows "Auto-detected (Native Messaging)" and "Connected".
+
+Do not claim the upgrade finished while a client or the extension still runs the old build.
+
 ## Safety rules
 
 - Never read page bodies or execute arbitrary page JavaScript for tab organization.

@@ -11,7 +11,9 @@
 - 列出实时标签页和标签组。
 - 后台打开 `http`/`https` 页面（不抢占焦点）。
 - 按精确名称创建、移动、移除标签组。
-- 把标签页移动到窗口内的指定位置。
+- 置顶/取消置顶/复制标签页，跨窗口移动。
+- 批量打开 URL 并原子入组；合并、重命名、着色、折叠标签组。
+- 事件驱动地知道页面何时加载完成，以及当前活动标签页。
 - 拒绝歧义匹配、重复组名、跨窗口分组和未经确认的取消置顶。
 - 每次修改后都会回读 Firefox 状态验证成功后才报告。
 
@@ -75,7 +77,7 @@
 
 ### 1. 安装扩展
 
-从[最新 Release](https://github.com/Johnnyzlee/agent-bridge-for-tab-management-in-firefox/releases) 下载 `tab_management_agent_bridge_for_firefox-0.5.4.xpi`，用 Firefox 打开即可。
+从[最新 Release](https://github.com/Johnnyzlee/agent-bridge-for-tab-management-in-firefox/releases) 下载 `tab_management_agent_bridge_for_firefox-0.5.5.xpi`，用 Firefox 打开即可。
 
 ### 2. 运行一次 setup
 

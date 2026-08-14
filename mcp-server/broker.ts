@@ -33,6 +33,16 @@ interface PendingRequest {
   agent?: WebSocket;
 }
 
+interface TabCompleteRecord {
+  url: string;
+  title: string;
+}
+
+interface TabWaiter {
+  timer: NodeJS.Timeout;
+  respond(result: unknown): void;
+}
+
 function tokensEqual(actual: string, expected: string): boolean {
   const actualBytes = Buffer.from(actual);
   const expectedBytes = Buffer.from(expected);
@@ -48,6 +58,8 @@ export class Broker implements BridgeLike {
   private readonly authTimeoutMs: number;
   private readonly events = new EventEmitter();
   private readonly pending = new Map<string, PendingRequest>();
+  private readonly completedTabs = new Map<number, TabCompleteRecord>();
+  private readonly tabWaiters = new Map<number, TabWaiter>();
   private extensionServer: WebSocketServer | undefined;
   private agentServer: WebSocketServer | undefined;
   private actualExtensionPort: number | undefined;
@@ -127,12 +139,19 @@ export class Broker implements BridgeLike {
         clearTimeout(authTimer);
         this.extensionClient?.close(1000, "Replaced by a newly authenticated Firefox extension");
         this.extensionClient = socket;
+        this.completedTabs.clear();
         socket.send(JSON.stringify({ type: "auth_ok", protocolVersion: BRIDGE_PROTOCOL_VERSION }));
         this.events.emit("connected");
         return;
       }
 
-      this.handleResponse(message as BridgeResponse);
+      const typed = message as Record<string, unknown>;
+      if (typed.type === "event") {
+        this.handleEvent(typed);
+        return;
+      }
+
+      this.handleResponse(typed as unknown as BridgeResponse);
     });
 
     socket.on("close", () => {
@@ -199,6 +218,11 @@ export class Broker implements BridgeLike {
       return;
     }
 
+    if (request.method === "wait_tab") {
+      this.handleWaitRequest(agent, request);
+      return;
+    }
+
     if (!this.extensionClient || this.extensionClient.readyState !== WebSocket.OPEN) {
       agent.send(
         JSON.stringify({
@@ -257,6 +281,91 @@ export class Broker implements BridgeLike {
     void forwarded;
   }
 
+  private handleEvent(message: Record<string, unknown>): void {
+    if (message.event !== "tab_complete") return;
+    const data = message.data as { tabId?: unknown; url?: unknown; title?: unknown } | undefined;
+    if (data === undefined || typeof data.tabId !== "number" || !Number.isInteger(data.tabId) || data.tabId <= 0) {
+      return;
+    }
+    const record: TabCompleteRecord = {
+      url: typeof data.url === "string" ? data.url : "",
+      title: typeof data.title === "string" ? data.title : "",
+    };
+    this.completedTabs.set(data.tabId, record);
+    const waiter = this.tabWaiters.get(data.tabId);
+    if (waiter) {
+      clearTimeout(waiter.timer);
+      this.tabWaiters.delete(data.tabId);
+      waiter.respond({ tabId: data.tabId, url: record.url, title: record.title, waitedMs: 0 });
+    }
+  }
+
+  private handleWaitRequest(agent: WebSocket, request: BridgeRequest): void {
+    const params = request.params as { tabId?: unknown; timeoutMs?: unknown };
+    const tabId = params.tabId;
+    if (typeof tabId !== "number" || !Number.isInteger(tabId) || tabId <= 0) {
+      agent.send(
+        JSON.stringify({
+          type: "response",
+          id: request.id,
+          ok: false,
+          error: { code: "INVALID_TAB_ID", message: "tabId must be a positive integer." },
+        }),
+      );
+      return;
+    }
+    const timeoutMs = Math.min(
+      Math.max(typeof params.timeoutMs === "number" ? params.timeoutMs : 10_000, 100),
+      30_000,
+    );
+    const respond = (result: unknown): void => {
+      agent.send(JSON.stringify({ type: "response", id: request.id, ok: true, result }));
+    };
+    const respondError = (code: string, message: string): void => {
+      agent.send(JSON.stringify({ type: "response", id: request.id, ok: false, error: { code, message } }));
+    };
+
+    const cached = this.completedTabs.get(tabId);
+    if (cached) {
+      respond({ tabId, url: cached.url, title: cached.title, waitedMs: 0 });
+      return;
+    }
+    const timer = setTimeout(() => {
+      this.tabWaiters.delete(tabId);
+      respondError("TAB_LOAD_TIMEOUT", `Firefox did not report tab ${tabId} as loaded within the timeout.`);
+    }, timeoutMs);
+    this.tabWaiters.set(tabId, { timer, respond });
+  }
+
+  async waitForTab(params: unknown): Promise<unknown> {
+    const raw = params as { tabId?: unknown; timeoutMs?: unknown };
+    const tabId = raw.tabId;
+    if (typeof tabId !== "number" || !Number.isInteger(tabId) || tabId <= 0) {
+      throw new FirefoxTabsError("INVALID_TAB_ID", "tabId must be a positive integer.");
+    }
+    const timeoutMs = Math.min(
+      Math.max(typeof raw.timeoutMs === "number" ? raw.timeoutMs : 10_000, 100),
+      30_000,
+    );
+    const cached = this.completedTabs.get(tabId);
+    if (cached) {
+      return { tabId, url: cached.url, title: cached.title, waitedMs: 0 };
+    }
+    return new Promise<unknown>((resolve, reject) => {
+      const timer = setTimeout(() => {
+        this.tabWaiters.delete(tabId);
+        reject(new FirefoxTabsError("TAB_LOAD_TIMEOUT", `Firefox did not report tab ${tabId} as loaded within the timeout.`));
+      }, timeoutMs);
+      this.tabWaiters.set(tabId, {
+        timer,
+        respond: (result) => {
+          clearTimeout(timer);
+          resolve(result);
+        },
+      });
+    });
+  }
+
   private handleResponse(response: BridgeResponse): void {
     if (response.type !== "response" || typeof response.id !== "string") return;
     const pending = this.pending.get(response.id);
@@ -275,6 +384,9 @@ export class Broker implements BridgeLike {
   }
 
   async call(method: BridgeMethod, params: unknown): Promise<unknown> {
+    if (method === "wait_tab") {
+      return this.waitForTab(params);
+    }
     const client = await this.waitForExtension();
     const id = randomUUID();
     const request: BridgeRequest = { type: "request", id, method, params };
@@ -368,6 +480,11 @@ export class Broker implements BridgeLike {
 
   async stop(): Promise<void> {
     this.rejectAllPending(new FirefoxTabsError("BRIDGE_STOPPED", "The Firefox bridge stopped."));
+    for (const waiter of this.tabWaiters.values()) {
+      clearTimeout(waiter.timer);
+    }
+    this.tabWaiters.clear();
+    this.completedTabs.clear();
     this.extensionClient?.close(1001, "Bridge stopping");
     this.extensionClient = undefined;
     for (const agent of this.agents) agent.close(1001, "Bridge stopping");

@@ -156,6 +156,17 @@ function createBrowser(initialTabs: BrowserTab[], groups: BrowserTabGroup[]): Br
           if (index >= 0) tabs.splice(index, 1);
         }
       }),
+      duplicate: vi.fn(async (id) => {
+        const tab = tabs.find((candidate) => candidate.id === id);
+        if (!tab) throw new Error("missing tab");
+        const copy: BrowserTab = {
+          ...tab,
+          id: Math.max(0, ...tabs.map((candidate) => candidate.id ?? 0)) + 1,
+          index: tabs.filter((candidate) => candidate.windowId === tab.windowId).length,
+        };
+        tabs.push(copy);
+        return { ...copy };
+      }),
     },
     tabGroups: {
       query: vi.fn(async (query: Record<string, unknown>) =>
@@ -169,6 +180,7 @@ function createBrowser(initialTabs: BrowserTab[], groups: BrowserTabGroup[]): Br
         if (!group) throw new Error("missing group");
         if (properties.title !== undefined) group.title = properties.title;
         if (properties.collapsed !== undefined) group.collapsed = properties.collapsed;
+        if (properties.color !== undefined) group.color = properties.color;
         return { ...group };
       }),
       remove: vi.fn(async (groupId) => {
@@ -597,5 +609,116 @@ describe("FirefoxTabController", () => {
     await expect(controller.newWindow({ url: "file:///tmp/private.txt" })).rejects.toMatchObject({
       code: "UNSUPPORTED_URL_SCHEME",
     } satisfies Partial<FirefoxTabsError>);
+  });
+
+  it("pins and unpins a tab with verification", async () => {
+    const browser = createBrowser([targetTab], []);
+    const controller = new FirefoxTabController(browser);
+    const pinned = await controller.pinTab({ tabId: 10 });
+    expect(pinned.changed).toBe(true);
+    expect(pinned.after.pinned).toBe(true);
+
+    const noop = await controller.pinTab({ tabId: 10 });
+    expect(noop.changed).toBe(false);
+
+    const unpinned = await controller.unpinTab({ tabId: 10 });
+    expect(unpinned.changed).toBe(true);
+    expect(unpinned.after.pinned).toBe(false);
+  });
+
+  it("duplicates a tab and verifies the new tab", async () => {
+    const browser = createBrowser([targetTab], []);
+    const controller = new FirefoxTabController(browser);
+    const result = await controller.duplicateTab({ tabId: 10 });
+
+    expect(result.changed).toBe(true);
+    expect(result.after).toMatchObject({ id: 11, url: targetUrl, windowId: 1 });
+  });
+
+  it("sets a group color and rejects invalid colors", async () => {
+    const browser = createBrowser([targetTab], [browsingGroup]);
+    const controller = new FirefoxTabController(browser);
+    const result = await controller.setTabGroupColor({ groupTitle: "Browsering", color: "red" });
+    expect(result.changed).toBe(true);
+    expect(result.after.color).toBe("red");
+
+    await expect(
+      controller.setTabGroupColor({ groupTitle: "Browsering", color: "neon" }),
+    ).rejects.toMatchObject({ code: "INVALID_GROUP_COLOR" });
+  });
+
+  it("moves a tab to another window without grouping it", async () => {
+    const browser = createBrowser([targetTab], []);
+    const controller = new FirefoxTabController(browser);
+    const result = await controller.moveTabToWindow({ selector: { tabId: 10 }, windowId: 2 });
+
+    expect(result.changed).toBe(true);
+    expect(result.after.windowId).toBe(2);
+    expect(browser.moveToWindowCalls).toEqual([{ tabId: 10, windowId: 2 }]);
+  });
+
+  it("returns the active tab of the focused window", async () => {
+    const browser = createBrowser([targetTab], []);
+    const controller = new FirefoxTabController(browser);
+    const result = await controller.getActiveTab();
+    expect(result.tab).toMatchObject({ id: 10, active: true });
+  });
+
+  it("opens URLs into an existing group atomically", async () => {
+    const browser = createBrowser([targetTab], [browsingGroup]);
+    const controller = new FirefoxTabController(browser);
+    const result = await controller.openTabsIntoGroup({
+      urls: ["https://a.example.com", "https://b.example.com"],
+      groupTitle: "Browsering",
+    });
+
+    expect(result.created).toBe(false);
+    expect(result.tabs.map((tab) => tab.url)).toEqual(["https://a.example.com/", "https://b.example.com/"]);
+    expect(result.tabs.every((tab) => tab.groupId === 42)).toBe(true);
+  });
+
+  it("creates the group when opening URLs into a missing group", async () => {
+    const browser = createBrowser([targetTab], []);
+    const controller = new FirefoxTabController(browser);
+    const result = await controller.openTabsIntoGroup({
+      urls: ["https://a.example.com"],
+      groupTitle: "Research",
+    });
+
+    expect(result.created).toBe(true);
+    expect(result.group.title).toBe("Research");
+    expect(result.tabs[0]).toMatchObject({ groupId: 100 });
+  });
+
+  it("rolls back opened tabs when grouping fails", async () => {
+    const browser = createBrowser([targetTab], []);
+    browser.tabGroups.query = vi.fn(async () => [] as BrowserTabGroup[]);
+    browser.tabs.group = vi.fn(async () => {
+      throw new Error("grouping failed");
+    });
+    const controller = new FirefoxTabController(browser);
+    await expect(
+      controller.openTabsIntoGroup({ urls: ["https://a.example.com"], groupTitle: "X" }),
+    ).rejects.toThrow("grouping failed");
+    expect(browser.removeCalls.length).toBeGreaterThan(0);
+  });
+
+  it("moves a batch of tabs into a group in one verified operation", async () => {
+    const secondTab: BrowserTab = { ...targetTab, id: 11, index: 2 };
+    const browser = createBrowser([targetTab, secondTab], [browsingGroup]);
+    const controller = new FirefoxTabController(browser);
+    const result = await controller.moveTabsToGroup({ tabIds: [10, 11], groupTitle: "Browsering" });
+
+    expect(result.changed).toBe(true);
+    expect(result.after.every((tab) => tab.groupId === 42)).toBe(true);
+  });
+
+  it("rejects a batch move when a tab does not exist", async () => {
+    const browser = createBrowser([targetTab], [browsingGroup]);
+    const controller = new FirefoxTabController(browser);
+    await expect(
+      controller.moveTabsToGroup({ tabIds: [10, 999], groupTitle: "Browsering" }),
+    ).rejects.toMatchObject({ code: "TAB_NOT_FOUND" });
+    expect(browser.groupCalls).toHaveLength(0);
   });
 });

@@ -11,7 +11,9 @@ Everything runs locally. No accounts, no cloud, no telemetry.
 - Lists your live tabs and tab groups.
 - Opens `http`/`https` pages in the background (no focus stealing).
 - Creates, moves, and removes tab groups with exact names.
-- Moves tabs to a target position in their window.
+- Pins, unpins, and duplicates tabs; moves them across windows.
+- Opens batches of URLs into a group in one atomic step; merges, renames, colors, and collapses groups.
+- Knows when a page finished loading (event-driven) and which tab is active.
 - Refuses ambiguous matches, duplicate group names, cross-window grouping, and unpinning without your OK.
 - Verifies every change against Firefox before reporting success.
 
@@ -75,7 +77,7 @@ Make it a habit: throughout the day, send article links, docs, and reference pag
 
 ### 1. Install the extension
 
-Download `tab_management_agent_bridge_for_firefox-0.5.4.xpi` from the [latest release](https://github.com/Johnnyzlee/agent-bridge-for-tab-management-in-firefox/releases) and open it with Firefox.
+Download `tab_management_agent_bridge_for_firefox-0.5.5.xpi` from the [latest release](https://github.com/Johnnyzlee/agent-bridge-for-tab-management-in-firefox/releases) and open it with Firefox.
 
 ### 2. Run setup once
 

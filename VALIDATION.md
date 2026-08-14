@@ -2,6 +2,13 @@
 
 Validated locally on 15 August 2026 with Node.js 22.17.0 and npm 10.9.2.
 
+## v0.5.5 development branch (pin, duplicate, color, batch open/move, active tab, event-driven wait) — work in progress
+
+| Check | Result |
+|---|---|
+| Vitest | 122 tests passed across 6 files (pin/unpin, duplicate, group color, move-to-window, atomic open-into-group with rollback, batch move, active tab, broker tab-complete event cache and waiters) |
+| Production build + web-ext lint | Passed |
+
 ## v0.5.3 development branch (list windows) — work in progress
 
 | Check | Result |

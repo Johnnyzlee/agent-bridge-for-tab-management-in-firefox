@@ -236,3 +236,73 @@ describe("BrokerClient", () => {
     await expect(call).rejects.toMatchObject({ code: "BROKER_DISCONNECTED" });
   });
 });
+
+describe("Broker tab-complete events", () => {
+  it("answers wait_tab immediately from the event cache", async () => {
+    const broker = await startBroker();
+    const extension = await connectExtension(broker);
+    extension.send(
+      JSON.stringify({
+        type: "event",
+        event: "tab_complete",
+        data: { tabId: 77, url: "https://example.com/", title: "Example" },
+      }),
+    );
+    const { agentPort } = brokerPorts(broker);
+    const client = new BrokerClient({ token, agentPort, connectionWaitMs: 500, requestTimeoutMs: 2000 });
+    clients.push(client);
+    await client.connect();
+    await expect(client.call("wait_tab", { tabId: 77, timeoutMs: 1000 })).resolves.toMatchObject({
+      tabId: 77,
+      url: "https://example.com/",
+      title: "Example",
+      waitedMs: 0,
+    });
+  });
+
+  it("waits for a tab_complete event and answers as soon as it arrives", async () => {
+    const broker = await startBroker();
+    const extension = await connectExtension(broker);
+    const { agentPort } = brokerPorts(broker);
+    const client = new BrokerClient({ token, agentPort, connectionWaitMs: 500, requestTimeoutMs: 5000 });
+    clients.push(client);
+    await client.connect();
+
+    const pending = client.call("wait_tab", { tabId: 99, timeoutMs: 3000 });
+    await new Promise((resolve) => setTimeout(resolve, 100));
+    extension.send(
+      JSON.stringify({
+        type: "event",
+        event: "tab_complete",
+        data: { tabId: 99, url: "https://later.example/", title: "Later" },
+      }),
+    );
+    await expect(pending).resolves.toMatchObject({ tabId: 99, url: "https://later.example/", title: "Later" });
+  });
+
+  it("fails with TAB_LOAD_TIMEOUT when the event never arrives", async () => {
+    const broker = await startBroker();
+    const { agentPort } = brokerPorts(broker);
+    const client = new BrokerClient({ token, agentPort, connectionWaitMs: 500, requestTimeoutMs: 5000 });
+    clients.push(client);
+    await client.connect();
+    await expect(client.call("wait_tab", { tabId: 123, timeoutMs: 150 })).rejects.toMatchObject({
+      code: "TAB_LOAD_TIMEOUT",
+    });
+  });
+
+  it("supports in-process wait_tab calls on the broker", async () => {
+    const broker = await startBroker();
+    const extension = await connectExtension(broker);
+    const pending = broker.call("wait_tab", { tabId: 55, timeoutMs: 2000 });
+    await new Promise((resolve) => setTimeout(resolve, 50));
+    extension.send(
+      JSON.stringify({
+        type: "event",
+        event: "tab_complete",
+        data: { tabId: 55, url: "https://ip.example/", title: "" },
+      }),
+    );
+    await expect(pending).resolves.toMatchObject({ tabId: 55 });
+  });
+});

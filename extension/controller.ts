@@ -14,8 +14,10 @@ import type {
   OpenTabsIntoGroupParams,
   RenameTabGroupParams,
   RepositionTabParams,
+  RestoreTabParams,
   SetTabGroupCollapsedParams,
   SetTabGroupColorParams,
+  SetTabMutedParams,
   TabSelector,
   UngroupTabParams,
 } from "../shared/protocol.js";
@@ -29,6 +31,7 @@ export interface BrowserTab {
   groupId: number;
   active: boolean;
   pinned: boolean;
+  muted?: boolean;
   title?: string;
   url?: string;
 }
@@ -55,11 +58,14 @@ export interface BrowserApi {
         | { tabIds: number[]; createProperties: { windowId: number } },
     ): Promise<number>;
     ungroup(tabIds: number | number[]): Promise<void>;
-    update(tabId: number, updateProperties: { pinned: boolean }): Promise<BrowserTab>;
+    update(tabId: number, updateProperties: { pinned: boolean; muted?: boolean }): Promise<BrowserTab>;
     move(tabId: number, moveProperties: { index: number }): Promise<BrowserTab>;
     moveToWindow(tabId: number, windowId: number, moveProperties?: { index?: number }): Promise<BrowserTab>;
     remove(tabIds: number[]): Promise<void>;
     duplicate(tabId: number): Promise<BrowserTab>;
+  };
+  sessions: {
+    restore(sessionId?: string): Promise<{ tab?: BrowserTab; window?: { id?: number } }>;
   };
   tabGroups: {
     query(queryInfo: Record<string, unknown>): Promise<BrowserTabGroup[]>;
@@ -78,6 +84,7 @@ export interface PublicTab {
   groupId: number;
   active: boolean;
   pinned: boolean;
+  muted: boolean;
   title: string;
   url: string;
 }
@@ -93,6 +100,7 @@ function publicTab(tab: BrowserTab): PublicTab {
     groupId: tab.groupId,
     active: tab.active,
     pinned: tab.pinned,
+    muted: tab.muted ?? false,
     title: tab.title ?? "",
     url: tab.url ?? "",
   };
@@ -756,6 +764,43 @@ export class FirefoxTabController {
   async getActiveTab(): Promise<{ tab: PublicTab | null }> {
     const tabs = await this.browserApi.tabs.query({ active: true, lastFocusedWindow: true });
     return { tab: tabs.length > 0 ? publicTab(tabs[0]!) : null };
+  }
+
+  async restoreTab(params: RestoreTabParams = {}): Promise<{
+    restoredTab: PublicTab | null;
+    restoredWindowId: number | null;
+  }> {
+    if (params.sessionId !== undefined && params.sessionId.length === 0) {
+      throw new FirefoxTabsError("INVALID_SESSION_ID", "sessionId must not be empty.");
+    }
+    const restored = await this.browserApi.sessions.restore(params.sessionId);
+    const tab = restored.tab === undefined ? null : publicTab(restored.tab);
+    const windowId = restored.window?.id ?? null;
+    if (params.sessionId === undefined && tab === null && windowId === null) {
+      throw new FirefoxTabsError("NOTHING_TO_RESTORE", "Firefox has no recently closed tab or window to restore.");
+    }
+    return { restoredTab: tab, restoredWindowId: windowId };
+  }
+
+  async setTabMuted(params: SetTabMutedParams): Promise<{
+    changed: boolean;
+    before: PublicTab;
+    after: PublicTab;
+  }> {
+    const tab = await this.resolveTab(params.selector);
+    const before = publicTab(tab);
+    const currentlyMuted = tab.muted ?? false;
+    if (currentlyMuted === params.muted) {
+      return { changed: false, before, after: before };
+    }
+    const after = publicTab(await this.browserApi.tabs.update(before.id, { pinned: tab.pinned, muted: params.muted }));
+    if ((after.muted ?? false) !== params.muted) {
+      throw new FirefoxTabsError("VERIFICATION_FAILED", "Firefox did not report the expected muted state.", {
+        expectedMuted: params.muted,
+        after,
+      });
+    }
+    return { changed: true, before, after };
   }
 
   async openTabsIntoGroup(params: OpenTabsIntoGroupParams): Promise<{

@@ -124,6 +124,7 @@ function createBrowser(initialTabs: BrowserTab[], groups: BrowserTabGroup[]): Br
         const tab = tabs.find((candidate) => candidate.id === id);
         if (!tab) throw new Error("missing tab");
         tab.pinned = properties.pinned;
+        if (properties.muted !== undefined) tab.muted = properties.muted;
         return { ...tab };
       }),
       move: vi.fn(async (id, properties) => {
@@ -167,6 +168,9 @@ function createBrowser(initialTabs: BrowserTab[], groups: BrowserTabGroup[]): Br
         tabs.push(copy);
         return { ...copy };
       }),
+    },
+    sessions: {
+      restore: vi.fn(async () => ({ tab: { ...targetTab, id: 99 } })),
     },
     tabGroups: {
       query: vi.fn(async (query: Record<string, unknown>) =>
@@ -720,5 +724,34 @@ describe("FirefoxTabController", () => {
       controller.moveTabsToGroup({ tabIds: [10, 999], groupTitle: "Browsering" }),
     ).rejects.toMatchObject({ code: "TAB_NOT_FOUND" });
     expect(browser.groupCalls).toHaveLength(0);
+  });
+
+  it("restores the most recently closed tab and verifies it", async () => {
+    const browser = createBrowser([targetTab], []);
+    const controller = new FirefoxTabController(browser);
+    const result = await controller.restoreTab();
+    expect(result.restoredTab).toMatchObject({ id: 99, windowId: 1 });
+  });
+
+  it("reports when there is nothing to restore", async () => {
+    const browser = createBrowser([targetTab], []);
+    browser.sessions.restore = vi.fn(async () => ({}));
+    const controller = new FirefoxTabController(browser);
+    await expect(controller.restoreTab()).rejects.toMatchObject({ code: "NOTHING_TO_RESTORE" });
+  });
+
+  it("mutes and unmutes a tab with verification", async () => {
+    const browser = createBrowser([{ ...targetTab, muted: false }], []);
+    const controller = new FirefoxTabController(browser);
+    const muted = await controller.setTabMuted({ selector: { tabId: 10 }, muted: true });
+    expect(muted.changed).toBe(true);
+    expect(muted.after.muted).toBe(true);
+
+    const noop = await controller.setTabMuted({ selector: { tabId: 10 }, muted: true });
+    expect(noop.changed).toBe(false);
+
+    const unmuted = await controller.setTabMuted({ selector: { tabId: 10 }, muted: false });
+    expect(unmuted.changed).toBe(true);
+    expect(unmuted.after.muted).toBe(false);
   });
 });

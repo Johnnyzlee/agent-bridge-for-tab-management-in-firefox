@@ -320,6 +320,34 @@ export function createMcpServer(bridge: BridgeLike): McpServer {
   );
 
   server.registerTool(
+    "restore_firefox_tab",
+    {
+      description:
+        "Restore the most recently closed Firefox tab or window (or a specific session) and return the restored tab and window IDs.",
+      inputSchema: z.object({
+        sessionId: z
+          .string()
+          .optional()
+          .describe("A session ID from a previous close; omit to restore the most recent one."),
+      }),
+    },
+    async (params) => invoke(bridge, "restore_tab", params),
+  );
+
+  server.registerTool(
+    "set_firefox_tab_muted",
+    {
+      description:
+        "Mute or unmute one exactly identified Firefox tab and verify the resulting state. Firefox may refuse to mute a playing tab without a user gesture.",
+      inputSchema: z.object({
+        selector: selectorSchema,
+        muted: z.boolean().describe("Whether the tab should be muted."),
+      }),
+    },
+    async (params) => invoke(bridge, "set_tab_muted", params),
+  );
+
+  server.registerTool(
     "move_firefox_tabs_to_group",
     {
       description:

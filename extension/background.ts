@@ -19,8 +19,10 @@ import {
   type OpenTabsIntoGroupParams,
   type RenameTabGroupParams,
   type RepositionTabParams,
+  type RestoreTabParams,
   type SetTabGroupCollapsedParams,
   type SetTabGroupColorParams,
+  type SetTabMutedParams,
   type TabSelector,
   type UngroupTabParams,
 } from "../shared/protocol.js";
@@ -191,6 +193,10 @@ async function dispatch(request: BridgeRequest): Promise<unknown> {
       return controller.openTabsIntoGroup(request.params as OpenTabsIntoGroupParams);
     case "get_active_tab":
       return controller.getActiveTab();
+    case "restore_tab":
+      return controller.restoreTab(request.params as RestoreTabParams);
+    case "set_tab_muted":
+      return controller.setTabMuted(request.params as SetTabMutedParams);
     case "pin_tab":
       return controller.pinTab(request.params as TabSelector);
     case "unpin_tab":

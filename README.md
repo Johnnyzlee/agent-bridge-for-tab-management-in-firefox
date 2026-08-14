@@ -18,7 +18,7 @@ Everything runs locally. No accounts, no cloud, no telemetry.
 
 ### 1. Install the extension
 
-Download `tab_management_agent_bridge_for_firefox-0.4.1.xpi` from the [latest release](https://github.com/Johnnyzlee/agent-bridge-for-tab-management-in-firefox/releases) and open it with Firefox.
+Download `tab_management_agent_bridge_for_firefox-0.5.0.xpi` from the [latest release](https://github.com/Johnnyzlee/agent-bridge-for-tab-management-in-firefox/releases) and open it with Firefox.
 
 ### 2. Run setup once
 
@@ -144,6 +144,10 @@ Ask your agent:
 > Check the Firefox bridge status, list my tab groups, open https://example.com, and put it in an exact group named Research (create it only if missing). Verify the group ID.
 
 Or open the extension's options page: it shows the auto-configuration status, connection state, and local port — nothing else to configure.
+
+## Multiple agents at once
+
+A shared broker on `127.0.0.1:8767` multiplexes any number of agents over the single Firefox connection. The first MCP server you start becomes the broker; every other server instance automatically connects to it as a client — so Claude Code, Hermes, OpenCLAW, Codex, and OpenCode can all manage the same Firefox session simultaneously. Each client still authenticates with the same shared secret from the local configuration; nothing else changes in your client configs.
 
 ## Useful commands
 

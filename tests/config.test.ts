@@ -180,7 +180,7 @@ describe("bridge option resolution", () => {
       { [TOKEN_ENV]: envToken, FIREFOX_TABS_BRIDGE_PORT: "9000" },
       platform({ env: { [CONFIG_DIR_ENV]: root } }),
     );
-    expect(resolved).toEqual({ port: 9000, token: envToken, source: "env" });
+    expect(resolved).toEqual({ port: 9000, brokerPort: 8767, token: envToken, source: "env" });
   });
 
   it("reads the port and token from the config file by default", async () => {
@@ -188,7 +188,7 @@ describe("bridge option resolution", () => {
     const config = sampleConfig();
     await saveBridgeConfig(root, config, platform());
     const resolved = await resolveBridgeOptions({}, platform({ env: { [CONFIG_DIR_ENV]: root } }));
-    expect(resolved).toEqual({ port: config.port, token: config.token, source: "config" });
+    expect(resolved).toEqual({ port: config.port, brokerPort: 8767, token: config.token, source: "config" });
   });
 
   it("overrides only the port when only FIREFOX_TABS_BRIDGE_PORT is set", async () => {
@@ -198,6 +198,7 @@ describe("bridge option resolution", () => {
     const info = platform({ env: { [CONFIG_DIR_ENV]: root } });
     await expect(resolveBridgeOptions({ FIREFOX_TABS_BRIDGE_PORT: "9100" }, info)).resolves.toEqual({
       port: 9100,
+      brokerPort: 8767,
       token: config.token,
       source: "config",
     });
@@ -229,6 +230,7 @@ describe("bridge option resolution", () => {
     });
     await expect(resolveBridgeOptions({}, info)).resolves.toEqual({
       port: config.port,
+      brokerPort: 8767,
       token: config.token,
       source: "config",
     });

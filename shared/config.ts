@@ -9,11 +9,13 @@ import { BRIDGE_PROTOCOL_VERSION } from "./protocol.js";
 export const EXTENSION_ID = "firefox-tabs-mcp@local.invalid";
 export const NATIVE_HOST_NAME = "firefox_tabs_agent_bridge";
 export const DEFAULT_BRIDGE_PORT = 8765;
+export const DEFAULT_BROKER_PORT = 8767;
 export const MIN_TOKEN_LENGTH = 16;
 export const BRIDGE_CONFIG_FILE = "bridge.json";
 export const CONFIG_DIR_ENV = "FIREFOX_TABS_BRIDGE_CONFIG_DIR";
 export const TOKEN_ENV = "FIREFOX_TABS_BRIDGE_TOKEN";
 export const PORT_ENV = "FIREFOX_TABS_BRIDGE_PORT";
+export const BROKER_PORT_ENV = "FIREFOX_TABS_BRIDGE_BROKER_PORT";
 
 export interface PlatformInfo {
   platform: string;
@@ -141,13 +143,23 @@ export async function loadBridgeConfig(root: string): Promise<BridgeConfig> {
 export async function resolveBridgeOptions(
   env: Record<string, string | undefined>,
   platform: PlatformInfo,
-): Promise<{ port: number; token: string; source: "env" | "config" }> {
+): Promise<{
+  port: number;
+  brokerPort: number;
+  token: string;
+  source: "env" | "config";
+}> {
   const envToken = env[TOKEN_ENV];
   if (typeof envToken === "string" && envToken.length >= MIN_TOKEN_LENGTH) {
     const envPort = env[PORT_ENV];
     const port =
-      typeof envPort === "string" && envPort.trim().length > 0 ? validatePort(envPort, "FIREFOX_TABS_BRIDGE_PORT") : DEFAULT_BRIDGE_PORT;
-    return { port, token: envToken, source: "env" };
+      typeof envPort === "string" && envPort.trim().length > 0 ? validatePort(envPort, PORT_ENV) : DEFAULT_BRIDGE_PORT;
+    return {
+      port,
+      brokerPort: resolveBrokerPort(env),
+      token: envToken,
+      source: "env",
+    };
   }
   if (typeof envToken === "string") {
     throw new FirefoxTabsError("INVALID_TOKEN", `${TOKEN_ENV} must contain at least 16 characters.`);
@@ -155,8 +167,21 @@ export async function resolveBridgeOptions(
   const config = await loadBridgeConfig(configRoot(platform));
   const envPort = env[PORT_ENV];
   const port =
-    typeof envPort === "string" && envPort.trim().length > 0 ? validatePort(envPort, "FIREFOX_TABS_BRIDGE_PORT") : config.port;
-  return { port, token: config.token, source: "config" };
+    typeof envPort === "string" && envPort.trim().length > 0 ? validatePort(envPort, PORT_ENV) : config.port;
+  return {
+    port,
+    brokerPort: resolveBrokerPort(env),
+    token: config.token,
+    source: "config",
+  };
+}
+
+export function resolveBrokerPort(env: Record<string, string | undefined>): number {
+  const raw = env[BROKER_PORT_ENV];
+  if (typeof raw === "string" && raw.trim().length > 0) {
+    return validatePort(raw, BROKER_PORT_ENV);
+  }
+  return DEFAULT_BROKER_PORT;
 }
 
 function validatePort(raw: string, name: string): number {

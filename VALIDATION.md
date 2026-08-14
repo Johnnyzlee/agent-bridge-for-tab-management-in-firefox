@@ -2,7 +2,20 @@
 
 Validated locally on 15 August 2026 with Node.js 22.17.0 and npm 10.9.2.
 
-## v0.4.0 development branch (automatic pairing) — work in progress
+## v0.5.0 development branch (shared broker) — work in progress
+
+| Check | Result |
+|---|---|
+| TypeScript `tsc --noEmit` | Passed |
+| Vitest | 87 tests passed across 6 files (broker multi-agent routing, client mode, config, CLI, native host, extension assets, controller) |
+| Production build (MCP server + Native Messaging Host + extension) | Passed |
+| Firefox `web-ext lint --warnings-as-errors` | 0 errors, 0 notices, 0 warnings |
+| Broker multi-agent | Verified in tests: two agents routed to the extension concurrently, correct response correlation, extension-disconnect propagation, per-agent disconnect isolation, unauthenticated rejection on both ports |
+| Extension compatibility | Extension code unchanged; still connects to the extension port with the same protocol |
+
+The v0.5.0 WebSocket security boundaries are unchanged: loopback-only binding on both ports, `moz-extension://` origin check on the extension port, timing-safe token authentication on both ports, and no token-less fallback.
+
+## v0.4.1 (previously validated)
 
 | Check | Result |
 |---|---|

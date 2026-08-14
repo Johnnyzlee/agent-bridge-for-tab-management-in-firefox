@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [0.5.0] - 2026-08-15
+
+- Add a shared broker that multiplexes multiple MCP agents over the single Firefox connection: the first server instance becomes the broker on the extension port plus a new agent port (`127.0.0.1:8767`), and later instances connect as authenticated clients.
+- Keep the extension and its manifest unchanged; `nativeMessaging`, WebSocket auth, and the loopback-only binding are untouched.
+- Add the `FIREFOX_TABS_BRIDGE_BROKER_PORT` override (default `8767`) and a `doctor` broker-port check.
+- Rebuild and re-sign the extension as v0.5.0 through the AMO unlisted channel.
+
 ## [0.4.1] - 2026-08-15
 
 - Switch the extension options page UI from Chinese to English (status labels, buttons, and background error messages).

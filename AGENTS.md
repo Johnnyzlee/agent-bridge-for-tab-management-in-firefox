@@ -4,7 +4,17 @@ Project conventions and workflows for agents working in this repository. Read th
 
 ## What this is
 
-Agent Bridge for Tab Management in Firefox — a local-first toolkit letting AI agents manage the user's live Firefox tabs and native tab groups. Three cooperating components: Firefox WebExtension (`extension/`), MCP server (`mcp-server/`, incl. shared broker), and Native Messaging Host (`native-host/`). TS + Node 20+, MPL-2.0. Latest release: v0.5.7 (25 MCP tools). Extension Gecko ID: `firefox-tabs-mcp@local.invalid` — never change it.
+Agent Bridge for Tab Management in Firefox — a local-first toolkit letting AI agents manage the user's live Firefox tabs and native tab groups. TS + Node 20+, MPL-2.0. Latest release: v0.5.7 (25 MCP tools). Extension Gecko ID: `firefox-tabs-mcp@local.invalid` — never change it.
+
+## Project structure
+
+- `extension/` — Firefox WebExtension. `background.ts` is the only bundled entry (esbuild → `dist/firefox-extension/background.js`); `controller.ts` holds every browser operation (tabs + tabGroups APIs); `manifest.json`, `options.*` are copied as-is.
+- `mcp-server/` — MCP server. `index.ts` is the CLI entry (subcommands `setup`/`doctor`/`uninstall`, default starts the stdio server). `broker.ts` is the shared broker (extension port + agent port, multi-client routing, event-driven `wait_tab`); `client.ts` is the agent-side connection used when another broker already owns the ports. `mcp.ts` registers the MCP tools.
+- `native-host/` — Native Messaging Host (length-prefixed JSON framing; serves `bridge.json` config to the extension).
+- `shared/` — `protocol.ts` (bridge wire protocol), `config.ts` (user-level config paths, token, native-host manifests), `errors.ts` (`FirefoxTabsError`).
+- `cli/commands.ts` — setup/doctor/uninstall logic shared with the MCP entry.
+- `tests/` — Vitest; `controller.test.ts` and `broker.test.ts` carry most coverage.
+- `scripts/upgrade.sh` — user-facing auto-upgrade (pull → rebuild → restart Hermes → open signed XPI → sync skill).
 
 ## Commands
 
@@ -16,6 +26,15 @@ npm run doctor       # health check (config, permissions, host registration)
 npm test             # vitest only
 npm pack --dry-run   # verify the npm package contents
 ```
+
+## Code standards
+
+- TypeScript strict mode (see `tsconfig.json`); import from sibling modules with `.js` suffixes.
+- Every bridge method follows the same shape: validate params → read `before` state → perform the write → re-read and verify (`VERIFICATION_FAILED` on mismatch) → return `{ changed, before, after, ... }`.
+- Errors are `FirefoxTabsError(code, message, details?)` with a stable machine-readable `code`; never expose the token or full config contents in messages.
+- No-op when the requested state already holds (`changed: false`), never throw.
+- Ambiguity is rejected, not guessed (`AMBIGUOUS_TAB` / `AMBIGUOUS_GROUP`); cross-window operations require an explicit `windowId`.
+- `npm run build` before signing: `dist/firefox-extension/manifest.json` must match the intended version.
 
 ## Development workflow
 

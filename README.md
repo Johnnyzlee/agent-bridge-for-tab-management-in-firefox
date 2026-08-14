@@ -53,15 +53,15 @@ The agent opens the pages without taking focus and keeps them together in one de
 
 ## Five-minute setup
 
-The current stable, Mozilla-signed release is v0.3.1. Version 0.4.0 (automatic pairing) is in development on the `main` branch and is **not** yet signed or released; keep using the [v0.3.1 signed XPI](https://github.com/Johnnyzlee/agent-bridge-for-tab-management-in-firefox/releases/tag/v0.3.1) until v0.4.0 passes Mozilla review.
+Version 0.4.0 is available as an AMO-signed XPI in the [GitHub Release](https://github.com/Johnnyzlee/agent-bridge-for-tab-management-in-firefox/releases). It was signed through AMO's automatic unlisted-channel signing service and has not yet passed a public (listed) Mozilla review; it upgrades v0.3.1 in place under the same Gecko ID, preserving the extension's settings while removing the manual token workflow.
 
 ### 1. Install the signed extension
 
-1. Download `tab_management_agent_bridge_for_firefox-0.3.1-mozilla-signed.xpi` from the v0.3.1 Release.
+1. Download `tab_management_agent_bridge_for_firefox-0.4.0.xpi` from the v0.4.0 Release.
 2. Open the XPI with Firefox and approve the installation prompt.
-3. The Mozilla-signed extension remains installed after Firefox restarts.
+3. The signed extension remains installed after Firefox restarts.
 
-For v0.4.0 development builds, load `dist/firefox-extension/manifest.json` from `about:debugging#/runtime/this-firefox` instead. Firefox removes temporary add-ons after each restart.
+For development builds, load `dist/firefox-extension/manifest.json` from `about:debugging#/runtime/this-firefox` instead. Firefox removes temporary add-ons after each restart.
 
 ### 2. Clone, build, and run setup
 
@@ -162,9 +162,9 @@ If the extension shows “未检测到本地桥接组件” (no local bridge com
 
 ## Upgrading from v0.3.1
 
-1. Upgrade the extension in place (same Gecko ID `firefox-tabs-mcp@local.invalid` preserves its settings).
+1. Upgrade the extension in place (same Gecko ID `firefox-tabs-mcp@local.invalid` preserves its settings) by installing the v0.4.0 XPI from the Release.
 2. Replace the old `.local/` helpers: run `npm run quickstart` (or `npm run setup` after rebuilding). The first setup run migrates the token from `.local/bridge-token.txt` into the new user-level configuration, so a previously configured extension and client keep working.
-3. Update your MCP client configuration to the token-free form above. The old token-bearing `env` entries still work through the compatibility override, but the new generated configuration no longer contains them.
+3. Update your MCP client configuration to the token-free form above. The old token-bearing `env` entries still work through the compatibility override, but the new generated configuration no longer contains them. If you were storing the token in a client configuration file, remove it; the token is now managed automatically by `setup`.
 
 ## Architecture
 

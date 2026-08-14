@@ -51,15 +51,15 @@ Agent 会在不抢占当前焦点的情况下打开页面，并把它们整理�
 
 ## 5 分钟配置
 
-当前稳定版本是已通过 Mozilla 审核并正式签名的 v0.3.1。v0.4.0（自动配对）正在 `main` 分支开发中，**尚未签名、尚未发布**；在 v0.4.0 通过 Mozilla 审核之前，请继续使用 [v0.3.1 签名 XPI](https://github.com/Johnnyzlee/agent-bridge-for-tab-management-in-firefox/releases/tag/v0.3.1)。
+v0.4.0 已发布 AMO 签名 XPI，位于 [GitHub Release](https://github.com/Johnnyzlee/agent-bridge-for-tab-management-in-firefox/releases)。它通过 AMO 的 unlisted（自托管）通道自动签名，尚未通过公开列表（listed）的人工审核；与 v0.3.1 使用同一 Gecko ID，可原地升级并保留设置，同时移除手动 Token 流程。
 
 ### 1. 安装正式签名扩展
 
-1. 从 v0.3.1 Release 下载 `tab_management_agent_bridge_for_firefox-0.3.1-mozilla-signed.xpi`。
+1. 从 v0.4.0 Release 下载 `tab_management_agent_bridge_for_firefox-0.4.0.xpi`。
 2. 使用 Firefox 打开 XPI，并确认安装。
-3. 这是 Mozilla 签名版本，Firefox 重启后仍会保留。
+3. 这是 AMO 签名版本，Firefox 重启后仍会保留。
 
-v0.4.0 开发版请改用 `about:debugging#/runtime/this-firefox` 临时载入 `dist/firefox-extension/manifest.json`。临时版在 Firefox 重启后会消失。
+开发版请改用 `about:debugging#/runtime/this-firefox` 临时载入 `dist/firefox-extension/manifest.json`。临时版在 Firefox 重启后会消失。
 
 ### 2. 克隆、构建并运行 setup
 
@@ -159,9 +159,9 @@ npm run doctor
 
 ## 从 v0.3.1 升级
 
-1. 原地升级扩展（同一个 Gecko ID `firefox-tabs-mcp@local.invalid`，保留设置）。
+1. 安装 v0.4.0 XPI 原地升级扩展（同一个 Gecko ID `firefox-tabs-mcp@local.invalid`，保留设置）。
 2. 替换旧的 `.local/` 辅助文件：重新运行 `npm run quickstart`（或构建后运行 `npm run setup`）。首次 setup 会把 `.local/bridge-token.txt` 中的 Token 迁移到新的用户级配置，之前配置好的扩展与客户端继续可用。
-3. 把 MCP 客户端配置更新为上面的无 Token 形式。旧的带 Token `env` 项仍可通过兼容覆盖继续工作，但新生成的配置不再包含它们。
+3. 把 MCP 客户端配置更新为上面的无 Token 形式。旧的带 Token `env` 项仍可通过兼容覆盖继续工作，但新生成的配置不再包含它们；如果 Token 曾明文存在客户端配置中，请一并删除——现在由 `setup` 自动管理。
 
 ## 架构
 

@@ -8,6 +8,7 @@ Validated locally on 15 August 2026 with Node.js 22.17.0 and npm 10.9.2. Histori
 |---|---|
 | Vitest | 132 tests (waiter rejection on extension disconnect; invalid-IDs-before-confirm ordering; stale doc reference fixed) |
 | Live Firefox | To be re-run after signing |
+| Native host argv | Verified in a live session: Firefox passes the manifest path (argv[2]) and the calling extension ID (argv[3] = `firefox-tabs-mcp@local.invalid`) to the host; the caller-ID check is real, not dead code |
 
 ## v0.5.9 (released — server-only, no re-sign)
 
@@ -23,6 +24,7 @@ Validated locally on 15 August 2026 with Node.js 22.17.0 and npm 10.9.2. Histori
 | Vitest | 129 tests (adds `CLOSE_REQUIRES_CONFIRMATION` guards and cache-cap eviction) |
 | Production build + web-ext lint | Passed |
 | Live Firefox | To be re-run after signing |
+| Native host argv | Verified in a live session: Firefox passes the manifest path (argv[2]) and the calling extension ID (argv[3] = `firefox-tabs-mcp@local.invalid`) to the host; the caller-ID check is real, not dead code |
 
 ## v0.5.7 (released)
 

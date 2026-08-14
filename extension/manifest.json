@@ -1,9 +1,9 @@
 {
   "manifest_version": 2,
   "name": "Tab Management Agent Bridge for Firefox",
-  "version": "0.3.1",
+  "version": "0.4.0",
   "description": "Connects a local MCP server to Firefox tab and tab-group APIs.",
-  "permissions": ["tabs", "tabGroups", "storage", "*://127.0.0.1/*"],
+  "permissions": ["tabs", "tabGroups", "storage", "nativeMessaging", "*://127.0.0.1/*"],
   "content_security_policy": "script-src 'self'; object-src 'self'; connect-src 'self' ws://127.0.0.1:*",
   "background": {
     "scripts": ["background.js"],

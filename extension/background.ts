@@ -13,19 +13,29 @@ import {
   type UngroupTabParams,
 } from "../shared/protocol.js";
 
+const NATIVE_HOST_NAME = "firefox_tabs_agent_bridge";
+const MIN_TOKEN_LENGTH = 16;
+
+interface BridgeConfig {
+  port: number;
+  token: string;
+}
+
 declare const browser: BrowserApi & {
   storage: {
     local: {
-      get(defaults: Record<string, unknown>): Promise<Record<string, unknown>>;
+      get(key: string | string[]): Promise<Record<string, unknown>>;
+      set(values: Record<string, unknown>): Promise<void>;
     };
     onChanged: {
-      addListener(listener: () => void): void;
+      addListener(listener: (changes: Record<string, unknown>, area: string) => void): void;
     };
   };
   runtime: {
     onMessage: {
       addListener(listener: (message: unknown) => unknown): void;
     };
+    sendNativeMessage(application: string, message: unknown): Promise<unknown>;
   };
 };
 
@@ -35,15 +45,8 @@ let reconnectTimer: ReturnType<typeof setTimeout> | undefined;
 let reconnectDelayMs = 500;
 let connectionState = "not_configured";
 let lastError = "";
-
-async function readConfig(): Promise<{ port: number; token: string }> {
-  const values = await browser.storage.local.get({ bridgePort: 8765, bridgeToken: "" });
-  const port = Number(values.bridgePort);
-  return {
-    port: Number.isInteger(port) && port >= 1 && port <= 65535 ? port : 8765,
-    token: typeof values.bridgeToken === "string" ? values.bridgeToken.trim() : "",
-  };
-}
+let currentConfig: BridgeConfig | undefined;
+let nativeHostAvailable = false;
 
 function clearReconnectTimer(): void {
   if (reconnectTimer !== undefined) {
@@ -58,6 +61,77 @@ function scheduleReconnect(): void {
     void connect();
   }, reconnectDelayMs);
   reconnectDelayMs = Math.min(reconnectDelayMs * 2, 10_000);
+}
+
+function isValidPort(value: unknown): value is number {
+  return typeof value === "number" && Number.isInteger(value) && value >= 1 && value <= 65535;
+}
+
+function parseConfig(values: Record<string, unknown>): BridgeConfig | undefined {
+  const { bridgePort, bridgeToken } = values;
+  if (isValidPort(bridgePort) && typeof bridgeToken === "string" && bridgeToken.length >= MIN_TOKEN_LENGTH) {
+    return { port: bridgePort, token: bridgeToken };
+  }
+  return undefined;
+}
+
+function parseNativeConfig(message: unknown): BridgeConfig | undefined {
+  if (typeof message !== "object" || message === null) return undefined;
+  const value = message as Record<string, unknown>;
+  if (value.type !== "bridge_config") return undefined;
+  if (value.protocolVersion !== BRIDGE_PROTOCOL_VERSION) return undefined;
+  if (!isValidPort(value.port)) return undefined;
+  if (typeof value.token !== "string" || value.token.length < MIN_TOKEN_LENGTH) return undefined;
+  return { port: value.port, token: value.token };
+}
+
+async function readCachedConfig(): Promise<BridgeConfig | undefined> {
+  try {
+    const values = await browser.storage.local.get(["bridgePort", "bridgeToken"]);
+    return parseConfig(values);
+  } catch {
+    return undefined;
+  }
+}
+
+async function fetchNativeConfig(): Promise<BridgeConfig | undefined> {
+  try {
+    const message = await browser.runtime.sendNativeMessage(NATIVE_HOST_NAME, {
+      type: "get_bridge_config",
+      protocolVersion: BRIDGE_PROTOCOL_VERSION,
+    });
+    return parseNativeConfig(message);
+  } catch {
+    return undefined;
+  }
+}
+
+async function refreshConfig(): Promise<void> {
+  const native = await fetchNativeConfig();
+  nativeHostAvailable = native !== undefined;
+  const config = native ?? (await readCachedConfig());
+  if (config === undefined) {
+    currentConfig = undefined;
+    connectionState = "not_configured";
+    lastError = "未检测到本地桥接组件，请在项目目录运行 npm run setup。";
+    return;
+  }
+  const changed =
+    currentConfig === undefined ||
+    currentConfig.port !== config.port ||
+    currentConfig.token !== config.token;
+  currentConfig = config;
+  if (native !== undefined) {
+    try {
+      await browser.storage.local.set({ bridgePort: native.port, bridgeToken: native.token });
+    } catch {
+      // The cache is optional; the in-memory config above is enough to connect.
+    }
+  }
+  if (changed) {
+    reconnectDelayMs = 500;
+    lastError = "";
+  }
 }
 
 async function dispatch(request: BridgeRequest): Promise<unknown> {
@@ -89,14 +163,13 @@ async function handleRequest(request: BridgeRequest): Promise<void> {
 }
 
 async function connect(): Promise<void> {
-  clearReconnectTimer();
-  socket?.close(1000, "reconfiguring");
-  const { port, token } = await readConfig();
-  if (token.length < 16) {
+  if (currentConfig === undefined) {
     connectionState = "not_configured";
-    lastError = "Set a bridge token of at least 16 characters in the extension options.";
     return;
   }
+  clearReconnectTimer();
+  socket?.close(1000, "reconfiguring");
+  const { port, token } = currentConfig;
 
   connectionState = "connecting";
   const nextSocket = new WebSocket(`ws://127.0.0.1:${port}`);
@@ -134,23 +207,61 @@ async function connect(): Promise<void> {
   });
 }
 
-browser.storage.onChanged.addListener(() => {
-  reconnectDelayMs = 500;
+async function start(): Promise<void> {
+  await refreshConfig();
   void connect();
+}
+
+browser.storage.onChanged.addListener((changes, area) => {
+  if (area !== "local") return;
+  if (!("bridgePort" in changes) && !("bridgeToken" in changes)) return;
+  void (async () => {
+    const values = await browser.storage.local.get(["bridgePort", "bridgeToken"]);
+    const config = parseConfig(values);
+    const same =
+      config !== undefined &&
+      currentConfig !== undefined &&
+      config.port === currentConfig.port &&
+      config.token === currentConfig.token;
+    if (same) return;
+    reconnectDelayMs = 500;
+    currentConfig = config;
+    if (config === undefined) {
+      connectionState = "not_configured";
+      lastError = "未检测到本地桥接组件，请在项目目录运行 npm run setup。";
+      return;
+    }
+    lastError = "";
+    void connect();
+  })();
 });
 
 browser.runtime.onMessage.addListener((message) => {
   if (typeof message === "object" && message !== null && "type" in message) {
-    if ((message as { type: string }).type === "bridge_status") {
-      return Promise.resolve({ state: connectionState, lastError });
+    const type = (message as { type: string }).type;
+    if (type === "bridge_status") {
+      return Promise.resolve({
+        state: connectionState,
+        autoConfig: nativeHostAvailable ? "native" : currentConfig !== undefined ? "cached" : "missing",
+        port: currentConfig?.port ?? null,
+        lastError,
+      });
     }
-    if ((message as { type: string }).type === "bridge_reconnect") {
+    if (type === "bridge_reconnect") {
       reconnectDelayMs = 500;
       void connect();
+      return Promise.resolve({ ok: true });
+    }
+    if (type === "bridge_redetect") {
+      reconnectDelayMs = 500;
+      void (async () => {
+        await refreshConfig();
+        void connect();
+      })();
       return Promise.resolve({ ok: true });
     }
   }
   return undefined;
 });
 
-void connect();
+void start();

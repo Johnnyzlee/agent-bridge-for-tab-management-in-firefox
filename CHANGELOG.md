@@ -4,6 +4,17 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [0.4.0] - development
+
+- Remove the manual token copy-and-paste workflow: the extension now obtains its bridge configuration automatically from a local Native Messaging Host.
+- Add a user-level bridge configuration directory shared by the MCP server, the CLI, and the Native Messaging Host (macOS/Linux/Windows paths, mode `0600` on POSIX, atomic writes).
+- Add the `nativeMessaging` permission and automatic configuration retrieval, caching, and re-detection in the extension; the options page no longer asks for a token.
+- Add a minimal Native Messaging Host with length-prefixed framing, message/version validation, and registration-based extension authorization.
+- Add `setup`, `doctor`, and `uninstall`/`unregister-host` (with `--purge`) CLI subcommands; the default entry still starts the MCP stdio server.
+- Migrate the v0.3.1 `.local/bridge-token.txt` token on first setup and preserve tokens on rerun.
+- Keep `FIREFOX_TABS_BRIDGE_TOKEN` and `FIREFOX_TABS_BRIDGE_PORT` as explicit development/compatibility overrides and generate token-free MCP client configuration.
+- Keep the WebSocket authentication, loopback-only binding, exact matching, pinned-tab protection, and post-write verification unchanged.
+
 ## [0.3.1] - 2026-08-15
 
 - Prepare public repository documentation, automation, and AMO review materials.

@@ -11,5 +11,13 @@
     "types": ["node", "vitest/globals"],
     "skipLibCheck": true
   },
-  "include": ["extension/**/*.ts", "mcp-server/**/*.ts", "shared/**/*.ts", "tests/**/*.ts", "scripts/**/*.mjs"]
+  "include": [
+    "extension/**/*.ts",
+    "mcp-server/**/*.ts",
+    "native-host/**/*.ts",
+    "cli/**/*.ts",
+    "shared/**/*.ts",
+    "tests/**/*.ts",
+    "scripts/**/*.mjs"
+  ]
 }

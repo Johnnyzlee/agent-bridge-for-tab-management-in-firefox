@@ -2,6 +2,24 @@
 
 Validated locally on 15 August 2026 with Node.js 22.17.0 and npm 10.9.2.
 
+## v0.4.0 development branch (automatic pairing) — work in progress
+
+| Check | Result |
+|---|---|
+| TypeScript `tsc --noEmit` | Passed |
+| Vitest | 76 tests passed across 6 files (config, CLI, native host, extension assets, bridge, controller) |
+| Production build (MCP server + Native Messaging Host + extension) | Passed |
+| Firefox `web-ext lint --warnings-as-errors` | 0 errors, 0 notices, 0 warnings |
+| `npm pack --dry-run` | Passed; includes `dist/server/index.js`, `dist/native-host/index.js`, README, LICENSE |
+| Smoke test in a temporary HOME + config root | Passed; setup created `bridge.json` (mode 600) and the host manifest (mode 600) with `allowed_extensions` = the signed Gecko ID; doctor all-passed; MCP server started from the config file; host served `bridge_config` over framed stdin/stdout; no token appeared in any output |
+| v0.3.1 token migration | Passed; first setup migrated `.local/bridge-token.txt` into the temp config root |
+| Token hygiene | Verified: setup/doctor/uninstall reports, MCP config, and errors never contain the token |
+| Live Firefox automatic pairing | Not yet performed — requires a user-run Firefox session with the development extension loaded |
+
+The v0.4.0 WebSocket security boundaries are unchanged and covered by tests: loopback-only binding, `moz-extension://` origin check, timing-safe token authentication, rejection of unauthenticated connections, and request timeouts.
+
+## v0.3.1 stable release (previously validated)
+
 | Check | Result |
 |---|---|
 | TypeScript `tsc --noEmit` | Passed |

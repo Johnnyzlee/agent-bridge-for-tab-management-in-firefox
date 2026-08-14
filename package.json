@@ -1,6 +1,6 @@
 {
   "name": "firefox-tab-management-agent-mcp",
-  "version": "0.3.1",
+  "version": "0.4.0",
   "private": true,
   "type": "module",
   "bin": {
@@ -8,6 +8,7 @@
   },
   "files": [
     "dist/server/**",
+    "dist/native-host/**",
     "README.md",
     "LICENSE"
   ],
@@ -34,7 +35,10 @@
   },
   "scripts": {
     "build": "node scripts/build.mjs",
-    "quickstart": "npm ci && npm run build && node scripts/generate-local-config.mjs",
+    "quickstart": "npm ci && npm run build && node dist/server/index.js setup",
+    "setup": "npm run build && node dist/server/index.js setup",
+    "doctor": "node dist/server/index.js doctor",
+    "uninstall": "node dist/server/index.js uninstall",
     "prepack": "npm run build",
     "lint:extension": "npx --yes web-ext@10.6.0 lint --source-dir dist/firefox-extension --warnings-as-errors",
     "typecheck": "tsc --noEmit",

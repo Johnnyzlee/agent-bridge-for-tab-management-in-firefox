@@ -11,7 +11,7 @@ npm ci
 npm run check
 ```
 
-The check performs TypeScript validation, the automated tests, the production build, and Firefox extension linting. Build output is written to `dist/` and must not be committed.
+The check performs TypeScript validation, the automated tests, the production build, and Firefox extension linting. Build output is written to `dist/` and must not be committed. To create or repair the local pairing for a development session, run `npm run setup`; the token is managed automatically and must never be printed, logged, or committed.
 
 ## Pull requests
 

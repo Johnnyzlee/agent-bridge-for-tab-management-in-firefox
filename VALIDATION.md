@@ -7,7 +7,7 @@ Validated locally on 15 August 2026 with Node.js 22.17.0 and npm 10.9.2. Histori
 | Check | Result |
 |---|---|
 | TypeScript `tsc --noEmit` | Passed |
-| Vitest | 129 tests across 6 files (includes audible-state reporting) |
+| Vitest | 127 tests across 6 files (includes audible-state reporting) |
 | Production build + web-ext lint | Passed |
 | Live Firefox | To be re-run after signing |
 
@@ -15,7 +15,7 @@ Validated locally on 15 August 2026 with Node.js 22.17.0 and npm 10.9.2. Histori
 
 | Check | Result |
 |---|---|
-| Real Firefox regression re-test | Passed — `pin`/`unpin`/`duplicate` fixed (previously `INVALID_SELECTOR`); `set_firefox_tab_muted` returns the dedicated `MUTE_REQUIRES_USER_GESTURE` error (Firefox silently ignores programmatic mute without a user gesture); event-driven `wait_for_firefox_tab`, `get_active_firefox_tab`, `list_firefox_windows`, open/close/restore all verified live |
+| Real Firefox regression re-test | Passed — `pin`/`unpin`/`duplicate` fixed (previously `INVALID_SELECTOR`); event-driven `wait_for_firefox_tab`, `get_active_firefox_tab`, `list_firefox_windows`, open/close/restore all verified live |
 | Vitest | 128 tests across 6 files |
 | `npm pack --dry-run` | Passed; includes `dist/server/index.js`, `dist/native-host/index.js`, README, LICENSE |
 

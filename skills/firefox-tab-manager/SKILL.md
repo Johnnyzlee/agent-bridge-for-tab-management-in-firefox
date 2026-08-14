@@ -5,7 +5,7 @@ description: >-
   opens pages, finds tabs, and organizes native tab groups with exact matching
   and post-operation verification. Use when the user mentions Firefox tabs or
   tab groups, asks to open or collect URLs into a named group, wants a tab
-  moved/pinned/duplicated/muted/restored, or wants current tab state reported —
+  moved/pinned/duplicated/restored, or wants current tab state reported —
   instead of guessing via screenshots or coordinates.
 ---
 
@@ -60,7 +60,7 @@ Window identity matters: groups and titles are per-window.
 
 - `pin_firefox_tab` / `unpin_firefox_tab` — note pinning moves the tab to the pinned area.
 - `duplicate_firefox_tab` — copy of the exact tab.
-- `set_firefox_tab_muted` — mute/unmute ("who is playing sound" → `list_firefox_tabs` shows audible state, then mute).
+- `list_firefox_tabs` reports the `audible` state, so you can tell the user which tabs are playing sound.
 - `move_firefox_tab` — reposition within its window (`index`, `-1` = end).
 - `close_firefox_tabs` — batch close by `tabId` (confirm first).
 - `restore_firefox_tab` — undo a close ("I closed the wrong tab").

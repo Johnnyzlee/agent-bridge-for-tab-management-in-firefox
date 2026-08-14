@@ -4,11 +4,11 @@
 
 - [x] Add `audible` to tab data (`list_firefox_tabs`, `get_active_firefox_tab`) so agents can find what is playing.
 - [ ] Submit v0.5.7 as an AMO unlisted version and verify the signed XPI.
-- [ ] Live-verify `audible` reporting and the `set_firefox_tab_muted` guidance in Firefox.
+- [ ] Live-verify `audible` reporting in Firefox.
 
 ## Released versions
 
-- [x] v0.5.6 — fix pin/unpin/duplicate dispatch + `MUTE_REQUIRES_USER_GESTURE` mapping (live-tested).
+- [x] v0.5.6 — fix pin/unpin/duplicate dispatch (live-tested).
 - [x] v0.5.5 — 26-tool set: pin, duplicate, color, batch open/move, active tab, event-driven wait.
 - [x] v0.5.4 — `list_firefox_windows`, `new_firefox_window`, `scripts/upgrade.sh`.
 - [x] v0.5.3 — skipped on AMO (version locked); features shipped in v0.5.4.

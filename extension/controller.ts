@@ -17,7 +17,6 @@ import type {
   RestoreTabParams,
   SetTabGroupCollapsedParams,
   SetTabGroupColorParams,
-  SetTabMutedParams,
   TabSelector,
   UngroupTabParams,
 } from "../shared/protocol.js";
@@ -788,28 +787,6 @@ export class FirefoxTabController {
       throw new FirefoxTabsError("NOTHING_TO_RESTORE", "Firefox has no recently closed tab or window to restore.");
     }
     return { restoredTab: tab, restoredWindowId: windowId };
-  }
-
-  async setTabMuted(params: SetTabMutedParams): Promise<{
-    changed: boolean;
-    before: PublicTab;
-    after: PublicTab;
-  }> {
-    const tab = await this.resolveTab(params.selector);
-    const before = publicTab(tab);
-    const currentlyMuted = tab.muted ?? false;
-    if (currentlyMuted === params.muted) {
-      return { changed: false, before, after: before };
-    }
-    const after = publicTab(await this.browserApi.tabs.update(before.id, { pinned: tab.pinned, muted: params.muted }));
-    if ((after.muted ?? false) !== params.muted) {
-      throw new FirefoxTabsError(
-        "MUTE_REQUIRES_USER_GESTURE",
-        "Firefox ignored the programmatic mute/unmute; mute and unmute changes require a user gesture. Ask the user to click the tab's sound icon, or retry after the user interacts with the tab.",
-        { expectedMuted: params.muted, after },
-      );
-    }
-    return { changed: true, before, after };
   }
 
   async openTabsIntoGroup(params: OpenTabsIntoGroupParams): Promise<{

@@ -12,7 +12,7 @@ Let trusted local AI agents inspect, open, and organize Firefox tabs and native 
 
 ## Description
 
-Tab Management Agent Bridge for Firefox is the browser extension in Agent Bridge for Tab Management in Firefox. Together with its local MCP server it lets a trusted AI agent manage the user's live Firefox session: list tabs, groups, and windows; open explicit HTTP(S) pages; pin, duplicate, mute, restore, close, and move tabs; and create, merge, rename, recolor, collapse, and close native tab groups — including across windows. An event-driven wait tool answers as soon as a page finishes loading.
+Tab Management Agent Bridge for Firefox is the browser extension in Agent Bridge for Tab Management in Firefox. Together with its local MCP server it lets a trusted AI agent manage the user's live Firefox session: list tabs, groups, and windows; open explicit HTTP(S) pages; pin, duplicate, restore, close, and move tabs; and create, merge, rename, recolor, collapse, and close native tab groups — including across windows. An event-driven wait tool answers as soon as a page finishes loading.
 
 The bridge uses Firefox's own WebExtension APIs with exact identifiers and matching rules. It protects pinned tabs, rejects ambiguous matches, and verifies browser state after every change. It does not inject scripts into pages or read page bodies.
 

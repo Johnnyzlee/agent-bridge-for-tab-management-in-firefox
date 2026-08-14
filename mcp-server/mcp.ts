@@ -335,19 +335,6 @@ export function createMcpServer(bridge: BridgeLike): McpServer {
   );
 
   server.registerTool(
-    "set_firefox_tab_muted",
-    {
-      description:
-        "Mute or unmute one exactly identified Firefox tab and verify the resulting state. Note: Firefox ignores programmatic mute changes without a user gesture — the tool returns MUTE_REQUIRES_USER_GESTURE and the user may need to click the tab's sound icon.",
-      inputSchema: z.object({
-        selector: selectorSchema,
-        muted: z.boolean().describe("Whether the tab should be muted."),
-      }),
-    },
-    async (params) => invoke(bridge, "set_tab_muted", params),
-  );
-
-  server.registerTool(
     "move_firefox_tabs_to_group",
     {
       description:

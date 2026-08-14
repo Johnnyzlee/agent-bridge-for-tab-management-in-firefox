@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [0.5.9.1] - 2026-08-15
+
+- Add a `completedAt` timestamp to tab-completion records and every `wait_for_firefox_tab` answer, and document the cache semantics (a cached hit means the tab finished loading at some point; a navigating tab needs a fresh event).
+- Server-only change; the extension is unchanged and does not need re-signing.
+
 ## [0.5.9] - 2026-08-15
 
 - Fix a shared-broker race: multiple agents waiting on the same tabId are now all answered when the completion event arrives (previously the second waiter overwrote the first, leaking its timer and causing a spurious `TAB_LOAD_TIMEOUT` or a lost event).

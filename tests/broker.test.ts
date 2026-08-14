@@ -261,6 +261,22 @@ describe("Broker tab-complete events", () => {
     });
   });
 
+  it("includes the completedAt timestamp in cached answers", async () => {
+    const broker = await startBroker();
+    const extension = await connectExtension(broker);
+    extension.send(
+      JSON.stringify({ type: "event", event: "tab_complete", data: { tabId: 88, url: "https://t.example/", title: "T" } }),
+    );
+    const { agentPort } = brokerPorts(broker);
+    const client = new BrokerClient({ token, agentPort, connectionWaitMs: 500, requestTimeoutMs: 1000 });
+    clients.push(client);
+    await client.connect();
+    const result = await client.call("wait_tab", { tabId: 88, timeoutMs: 1000 });
+    const value = result as { completedAt?: number };
+    expect(typeof value.completedAt).toBe("number");
+    expect(value.completedAt).toBeGreaterThan(0);
+  });
+
   it("waits for a tab_complete event and answers as soon as it arrives", async () => {
     const broker = await startBroker();
     const extension = await connectExtension(broker);

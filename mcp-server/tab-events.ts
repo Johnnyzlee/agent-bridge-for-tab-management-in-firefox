@@ -4,6 +4,7 @@ import { FirefoxTabsError } from "../shared/errors.js";
 interface TabCompleteRecord {
   url: string;
   title: string;
+  completedAt: number;
 }
 
 interface TabWaiter {
@@ -34,6 +35,7 @@ export class TabEventTracker {
     const record: TabCompleteRecord = {
       url: typeof data.url === "string" ? data.url : "",
       title: typeof data.title === "string" ? data.title : "",
+      completedAt: Date.now(),
     };
     this.completedTabs.set(data.tabId, record);
     if (this.completedTabs.size > this.maxCompletedTabs) {
@@ -47,7 +49,7 @@ export class TabEventTracker {
       this.tabWaiters.delete(data.tabId);
       for (const waiter of waiters) {
         clearTimeout(waiter.timer);
-        waiter.respond({ tabId: data.tabId, url: record.url, title: record.title, waitedMs: 0 });
+        waiter.respond({ tabId: data.tabId, url: record.url, title: record.title, completedAt: record.completedAt, waitedMs: 0 });
       }
     }
   }
@@ -76,7 +78,7 @@ export class TabEventTracker {
 
     const cached = this.completedTabs.get(tabId);
     if (cached) {
-      respond({ tabId, url: cached.url, title: cached.title, waitedMs: 0 });
+      respond({ tabId, url: cached.url, title: cached.title, completedAt: cached.completedAt, waitedMs: 0 });
       return;
     }
     const waiter: TabWaiter = {
@@ -99,7 +101,7 @@ export class TabEventTracker {
     const timeoutMs = this.timeoutOf(raw.timeoutMs);
     const cached = this.completedTabs.get(tabId);
     if (cached) {
-      return { tabId, url: cached.url, title: cached.title, waitedMs: 0 };
+      return { tabId, url: cached.url, title: cached.title, completedAt: cached.completedAt, waitedMs: 0 };
     }
     return new Promise<unknown>((resolve, reject) => {
       const waiter: TabWaiter = {

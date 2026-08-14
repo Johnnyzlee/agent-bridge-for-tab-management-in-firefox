@@ -58,12 +58,15 @@ open -a Firefox "$XPI"
 echo "[7/7] Syncing the Agent Skill to hosts where it is already installed..."
 SKILL_SRC="skills/firefox-tab-manager"
 SYNCED=""
+# Official default paths. Environment-variable overrides are honored where
+# the products define them; hosts installed elsewhere are simply not found
+# here and can be copied manually (see README).
 for dir in \
-  "${HOME}/.hermes/skills" \
+  "${HERMES_HOME:-${HOME}/.hermes}/skills" \
   "${CODEX_HOME:-${HOME}/.codex}/skills" \
-  "${HOME}/.claude/skills" \
-  "${HOME}/.config/opencode/skills" \
-  "${HOME}/.openclaw/skills"; do
+  "${CLAUDE_CONFIG_DIR:-${HOME}/.claude}/skills" \
+  "${OPENCODE_CONFIG_DIR:-${HOME}/.config/opencode}/skills" \
+  "${OPENCLAW_HOME:-${HOME}/.openclaw}/skills"; do
   if [ -d "${dir}/firefox-tab-manager" ]; then
     rm -rf "${dir}/firefox-tab-manager"
     cp -R "$SKILL_SRC" "${dir}/"
@@ -72,7 +75,8 @@ for dir in \
   fi
 done
 if [ -z "$SYNCED" ]; then
-  echo "      No existing skill install found; skipping (install it manually if wanted)."
+  echo "      No existing skill install found in the default locations;"
+  echo "      skip or copy skills/firefox-tab-manager manually."
 else
   echo "      Note: skills load at session start — restart the agent's session to pick up the update."
 fi

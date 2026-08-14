@@ -43,10 +43,31 @@ function createBrowser(initialTabs: BrowserTab[], groups: BrowserTabGroup[]): Br
     moveToWindowCalls,
     removeCalls,
     removeGroupCalls,
+    windows: {
+      create: vi.fn(async (options) => {
+        const windowId = Math.max(1, ...tabs.map((tab) => tab.windowId)) + 1;
+        const tab: BrowserTab = {
+          id: Math.max(0, ...tabs.map((candidate) => candidate.id ?? 0)) + 1,
+          windowId,
+          index: 0,
+          groupId: TAB_GROUP_ID_NONE,
+          active: options.focused ?? false,
+          pinned: false,
+          title: "",
+          url: options.url ?? "",
+        };
+        tabs.push(tab);
+        return { id: windowId };
+      }),
+    },
     tabs: {
-      query: vi.fn(async (query: Record<string, unknown>) =>
-        query.lastFocusedWindow ? tabs.filter((tab) => tab.windowId === 1) : tabs.map((tab) => ({ ...tab })),
-      ),
+      query: vi.fn(async (query: Record<string, unknown>) => {
+        if (query.lastFocusedWindow) return tabs.filter((tab) => tab.windowId === 1).map((tab) => ({ ...tab }));
+        if (query.windowId !== undefined) {
+          return tabs.filter((tab) => tab.windowId === query.windowId).map((tab) => ({ ...tab }));
+        }
+        return tabs.map((tab) => ({ ...tab }));
+      }),
       get: vi.fn(async (id: number) => {
         const tab = tabs.find((candidate) => candidate.id === id);
         if (!tab) throw new Error("missing tab");
@@ -550,5 +571,31 @@ describe("FirefoxTabController", () => {
       },
       { windowId: 2, tabCount: 1, groupCount: 0, groups: [] },
     ]);
+  });
+
+  it("creates a new window without stealing focus and verifies it", async () => {
+    const browser = createBrowser([targetTab], []);
+    const controller = new FirefoxTabController(browser);
+    const result = await controller.newWindow({});
+
+    expect(result.windowId).toBe(2);
+    expect(result.tab).toMatchObject({ windowId: 2, index: 0, active: false });
+  });
+
+  it("creates a new window with an explicit URL and verifies the first tab", async () => {
+    const browser = createBrowser([targetTab], []);
+    const controller = new FirefoxTabController(browser);
+    const result = await controller.newWindow({ url: "https://example.com", active: true });
+
+    expect(result.windowId).toBe(2);
+    expect(result.tab).toMatchObject({ windowId: 2, url: "https://example.com/", active: true });
+  });
+
+  it("rejects non-HTTP URLs when creating a window", async () => {
+    const browser = createBrowser([targetTab], []);
+    const controller = new FirefoxTabController(browser);
+    await expect(controller.newWindow({ url: "file:///tmp/private.txt" })).rejects.toMatchObject({
+      code: "UNSUPPORTED_URL_SCHEME",
+    } satisfies Partial<FirefoxTabsError>);
   });
 });

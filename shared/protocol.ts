@@ -4,6 +4,7 @@ export type BridgeMethod =
   | "list_tabs"
   | "list_tab_groups"
   | "list_windows"
+  | "new_window"
   | "open_tab"
   | "create_tab_group"
   | "move_tab_to_group"
@@ -122,4 +123,9 @@ export interface ListTabsParams {
 
 export interface ListGroupsParams {
   windowId?: number;
+}
+
+export interface NewWindowParams {
+  url?: string;
+  active?: boolean;
 }

@@ -98,6 +98,25 @@ export function createMcpServer(bridge: BridgeLike): McpServer {
   );
 
   server.registerTool(
+    "new_firefox_window",
+    {
+      description:
+        "Open a new Firefox window, optionally with an explicit http(s) URL, without stealing focus by default; returns the verified window ID and first tab.",
+      inputSchema: z.object({
+        url: z
+          .url()
+          .refine((value) => ["http:", "https:"].includes(new URL(value).protocol), {
+            message: "Only http:// and https:// URLs are allowed.",
+          })
+          .optional()
+          .describe("URL for the first tab of the new window."),
+        active: z.boolean().optional().default(false).describe("Whether the new window should become active."),
+      }),
+    },
+    async (params) => invoke(bridge, "new_window", params),
+  );
+
+  server.registerTool(
     "open_firefox_tab",
     {
       description:

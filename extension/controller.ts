@@ -7,6 +7,7 @@ import type {
   ListTabsParams,
   MergeTabGroupsParams,
   MoveTabToGroupParams,
+  NewWindowParams,
   OpenTabParams,
   RenameTabGroupParams,
   RepositionTabParams,
@@ -37,6 +38,9 @@ export interface BrowserTabGroup {
 }
 
 export interface BrowserApi {
+  windows: {
+    create(createData: { url?: string; focused?: boolean }): Promise<{ id?: number }>;
+  };
   tabs: {
     query(queryInfo: Record<string, unknown>): Promise<BrowserTab[]>;
     get(tabId: number): Promise<BrowserTab>;
@@ -117,6 +121,43 @@ function validateSelector(selector: TabSelector): void {
 
 export class FirefoxTabController {
   constructor(private readonly browserApi: BrowserApi) {}
+
+  async newWindow(params: NewWindowParams = {}): Promise<{ windowId: number; tab: PublicTab | null }> {
+    let url: URL | undefined;
+    if (params.url !== undefined) {
+      try {
+        url = new URL(params.url);
+      } catch {
+        throw new FirefoxTabsError("INVALID_URL", "url must be a complete, valid URL.", { url: params.url });
+      }
+      if (url.protocol !== "http:" && url.protocol !== "https:") {
+        throw new FirefoxTabsError(
+          "UNSUPPORTED_URL_SCHEME",
+          "Only http:// and https:// URLs can be opened.",
+          { protocol: url.protocol },
+        );
+      }
+    }
+
+    const created = await this.browserApi.windows.create({
+      ...(url === undefined ? {} : { url: url.href }),
+      focused: params.active ?? false,
+    });
+    if (created.id === undefined) {
+      throw new FirefoxTabsError("VERIFICATION_FAILED", "Firefox did not report the new window ID.");
+    }
+
+    const windowTabs = await this.browserApi.tabs.query({ windowId: created.id });
+    const tab = windowTabs.length > 0 ? publicTab(windowTabs[0]!) : null;
+    if (url !== undefined && (tab === null || tab.url !== url.href)) {
+      throw new FirefoxTabsError("VERIFICATION_FAILED", "Firefox did not report the expected first tab in the new window.", {
+        expectedUrl: url.href,
+        windowId: created.id,
+        tab,
+      });
+    }
+    return { windowId: created.id, tab };
+  }
 
   async openTab(params: OpenTabParams): Promise<{ tab: PublicTab }> {
     let url: URL;

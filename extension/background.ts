@@ -11,6 +11,7 @@ import {
   type ListGroupsParams,
   type ListTabsParams,
   type MergeTabGroupsParams,
+  type NewWindowParams,
   type MoveTabToGroupParams,
   type OpenTabParams,
   type RenameTabGroupParams,
@@ -148,6 +149,8 @@ async function dispatch(request: BridgeRequest): Promise<unknown> {
       return controller.listTabGroups(request.params as ListGroupsParams);
     case "list_windows":
       return controller.listWindows();
+    case "new_window":
+      return controller.newWindow(request.params as NewWindowParams);
     case "open_tab":
       return controller.openTab(request.params as OpenTabParams);
     case "create_tab_group":

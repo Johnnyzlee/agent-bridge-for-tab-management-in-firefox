@@ -55,6 +55,12 @@ Exact matching finds the right tab and `move_firefox_tab` places it where you wa
 
 `close_firefox_tab_group` closes a whole group (and its empty shell) with verification; ungrouping returns the rest to a clean state — all checked against Firefox before being reported.
 
+### Start fresh in a new window
+
+> Open a new window in the background and put these links into a group named "Research" there.
+
+`new_firefox_window` creates the verified window, then the group tools file the links into it — a dedicated research window without leaving your current context.
+
 ### Keep groups tidy
 
 > Rename the "Temp" group to "Later" and collapse it until I come back.

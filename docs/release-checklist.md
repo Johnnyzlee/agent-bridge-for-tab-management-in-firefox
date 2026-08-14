@@ -14,7 +14,8 @@
 ## v0.5.3 development (list windows)
 
 - [x] `list_firefox_windows` with per-window tab/group counts and group sizes.
-- [x] Tests (105 total).
+- [x] `new_firefox_window` (background window, optional verified URL).
+- [x] Tests (108 total).
 - [ ] Submit v0.5.3 as an AMO unlisted version and verify the signed XPI.
 
 ## v0.5.2 development (close / merge / rename / collapse / cross-window)

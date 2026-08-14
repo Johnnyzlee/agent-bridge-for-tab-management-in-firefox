@@ -50,6 +50,7 @@ npm pack --dry-run   # verify the npm package contents
 - CI auto-releases on `git tag vX.Y.Z` (`.github/workflows/release.yml`): version guard → check → packaging → AMO unlisted signing → GitHub Release. The AMO API credentials live in GitHub Secrets; do NOT ask for or print them.
 - The ONLY manual step the user performs is the AMO signing when requested, or the Firefox install confirmation prompt.
 - When the user runs `web-ext sign` themselves, they paste a command I prepare; never ask for their API key/secret in chat.
+- Release cadence: server-only fixes should be batched (accumulate 2-3 small fixes before tagging a new version); tag early only for extension changes that need re-signing. Do not delete or re-tag existing releases.
 
 ## Hard rules and history
 

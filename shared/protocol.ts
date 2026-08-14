@@ -7,7 +7,12 @@ export type BridgeMethod =
   | "create_tab_group"
   | "move_tab_to_group"
   | "move_tab"
-  | "ungroup_tab";
+  | "ungroup_tab"
+  | "close_tabs"
+  | "close_tab_group"
+  | "merge_tab_groups"
+  | "rename_tab_group"
+  | "set_tab_group_collapsed";
 
 export interface AuthMessage {
   type: "auth";
@@ -58,11 +63,39 @@ export interface MoveTabToGroupParams {
   selector: TabSelector;
   groupTitle: string;
   allowUnpin?: boolean;
+  windowId?: number;
 }
 
 export interface RepositionTabParams {
   selector: TabSelector;
   index: number;
+}
+
+export interface CloseTabsParams {
+  tabIds: number[];
+}
+
+export interface CloseTabGroupParams {
+  groupTitle: string;
+  windowId?: number;
+}
+
+export interface MergeTabGroupsParams {
+  from: string;
+  to: string;
+  windowId?: number;
+}
+
+export interface RenameTabGroupParams {
+  groupTitle: string;
+  newTitle: string;
+  windowId?: number;
+}
+
+export interface SetTabGroupCollapsedParams {
+  groupTitle: string;
+  collapsed: boolean;
+  windowId?: number;
 }
 
 export interface OpenTabParams {

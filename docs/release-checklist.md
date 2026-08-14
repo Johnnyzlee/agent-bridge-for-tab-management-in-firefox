@@ -11,6 +11,15 @@
 - [x] Extension, MCP package, Agent Skill, and AMO source archives rebuilt and integrity-checked.
 - [x] AMO source package rebuilt in a clean temporary directory and compared with the expected extension output.
 
+## v0.5.2 development (close / merge / rename / collapse / cross-window)
+
+- [x] `close_firefox_tabs` (batch by tabId) and `close_firefox_tab_group` (whole group + empty-group removal).
+- [x] `merge_firefox_tab_groups` (atomic, cross-window capable, empty source removed).
+- [x] Cross-window `move_firefox_tab_to_group` with explicit `windowId`.
+- [x] `rename_firefox_tab_group` and `set_firefox_tab_group_collapsed`.
+- [x] Tests for all of the above (104 total).
+- [ ] Submit v0.5.2 as an AMO unlisted version and verify the signed XPI.
+
 ## v0.5.1 development (move tab to position)
 
 - [x] Add `move_firefox_tab` (same-window target index, `-1` = end, clamping, no-op, post-move verification).

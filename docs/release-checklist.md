@@ -11,6 +11,12 @@
 - [x] Extension, MCP package, Agent Skill, and AMO source archives rebuilt and integrity-checked.
 - [x] AMO source package rebuilt in a clean temporary directory and compared with the expected extension output.
 
+## v0.5.1 development (move tab to position)
+
+- [x] Add `move_firefox_tab` (same-window target index, `-1` = end, clamping, no-op, post-move verification).
+- [x] Reposition tests (exact match, index validation, ambiguity rejection).
+- [ ] Submit v0.5.1 as an AMO unlisted version and verify the signed XPI.
+
 ## v0.5.0 development (shared broker)
 
 - [x] Add the shared broker: first server instance becomes the broker (extension port + agent port 8767), later instances connect as authenticated clients.

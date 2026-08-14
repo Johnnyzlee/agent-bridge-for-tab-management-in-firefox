@@ -51,7 +51,7 @@ async function invoke(bridge: BridgeLike, method: Parameters<BridgeLike["call"]>
 
 export function createMcpServer(bridge: BridgeLike): McpServer {
   const server = new McpServer(
-    { name: "firefox-tab-management-agent-mcp", version: "0.5.0" },
+    { name: "firefox-tab-management-agent-mcp", version: "0.5.1" },
     {
       instructions:
         "Open only explicit http/https URLs. Use exact URL or title matching and retry ambiguous matches with tabId. Create groups only when the user requested a new group; use the move tool if an exact group already exists. Never set allowUnpin=true without explicit user confirmation. Every write tool verifies the resulting Firefox state.",
@@ -140,6 +140,23 @@ export function createMcpServer(bridge: BridgeLike): McpServer {
       }),
     },
     async (params) => invoke(bridge, "move_tab_to_group", params),
+  );
+
+  server.registerTool(
+    "move_firefox_tab",
+    {
+      description:
+        "Move one exactly identified Firefox tab to a target position within its own window and verify the result. Ambiguous matches fail safely.",
+      inputSchema: z.object({
+        selector: selectorSchema,
+        index: z
+          .number()
+          .int()
+          .min(-1)
+          .describe("0-based target position in the tab's window; -1 moves it to the end."),
+      }),
+    },
+    async (params) => invoke(bridge, "move_tab", params),
   );
 
   server.registerTool(

@@ -11,6 +11,7 @@
 - 列出实时标签页和标签组。
 - 后台打开 `http`/`https` 页面（不抢占焦点）。
 - 按精确名称创建、移动、移除标签组。
+- 把标签页移动到窗口内的指定位置。
 - 拒绝歧义匹配、重复组名、跨窗口分组和未经确认的取消置顶。
 - 每次修改后都会回读 Firefox 状态验证成功后才报告。
 
@@ -40,6 +41,14 @@
 
 Agent 用精确匹配移动标签页，并验证最终的 group ID——不用在一堆标签页里拖来拖去。
 
+### 让重要标签页排最前
+
+同时开着很多页面？让顺序变得有意义：
+
+> 把"季度报告"那个标签页移到窗口最前面。
+
+精确匹配找到正确的标签页，`move_firefox_tab` 把它放到你要的位置，并经过 Firefox 验证。
+
 ### 任务结束一键复位
 
 > 把这个窗口里所有标签页取消分组。
@@ -54,7 +63,7 @@ Agent 用精确匹配移动标签页，并验证最终的 group ID——不用�
 
 ### 1. 安装扩展
 
-从[最新 Release](https://github.com/Johnnyzlee/agent-bridge-for-tab-management-in-firefox/releases) 下载 `tab_management_agent_bridge_for_firefox-0.5.0.xpi`，用 Firefox 打开即可。
+从[最新 Release](https://github.com/Johnnyzlee/agent-bridge-for-tab-management-in-firefox/releases) 下载 `tab_management_agent_bridge_for_firefox-0.5.1.xpi`，用 Firefox 打开即可。
 
 ### 2. 运行一次 setup
 

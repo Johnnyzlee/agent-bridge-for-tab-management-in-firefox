@@ -6,6 +6,7 @@ export type BridgeMethod =
   | "open_tab"
   | "create_tab_group"
   | "move_tab_to_group"
+  | "move_tab"
   | "ungroup_tab";
 
 export interface AuthMessage {
@@ -53,10 +54,15 @@ export interface TabSelector {
   ignoreUrlFragment?: boolean;
 }
 
-export interface MoveTabParams {
+export interface MoveTabToGroupParams {
   selector: TabSelector;
   groupTitle: string;
   allowUnpin?: boolean;
+}
+
+export interface RepositionTabParams {
+  selector: TabSelector;
+  index: number;
 }
 
 export interface OpenTabParams {

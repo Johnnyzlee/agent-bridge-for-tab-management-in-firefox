@@ -3,8 +3,9 @@ import type {
   CreateTabGroupParams,
   ListGroupsParams,
   ListTabsParams,
-  MoveTabParams,
+  MoveTabToGroupParams,
   OpenTabParams,
+  RepositionTabParams,
   TabSelector,
   UngroupTabParams,
 } from "../shared/protocol.js";
@@ -42,6 +43,7 @@ export interface BrowserApi {
     ): Promise<number>;
     ungroup(tabIds: number | number[]): Promise<void>;
     update(tabId: number, updateProperties: { pinned: boolean }): Promise<BrowserTab>;
+    move(tabId: number, moveProperties: { index: number }): Promise<BrowserTab>;
   };
   tabGroups: {
     query(queryInfo: Record<string, unknown>): Promise<BrowserTabGroup[]>;
@@ -277,7 +279,7 @@ export class FirefoxTabController {
     return matches[0]!;
   }
 
-  async moveTabToGroup(params: MoveTabParams): Promise<{
+  async moveTabToGroup(params: MoveTabToGroupParams): Promise<{
     changed: boolean;
     before: PublicTab;
     after: PublicTab;
@@ -347,6 +349,34 @@ export class FirefoxTabController {
     const after = publicTab(await this.browserApi.tabs.get(before.id));
     if (after.groupId !== TAB_GROUP_ID_NONE) {
       throw new FirefoxTabsError("VERIFICATION_FAILED", "Firefox still reports the tab as grouped after ungrouping.", {
+        after,
+      });
+    }
+    return { changed: true, before, after };
+  }
+
+  async repositionTab(params: RepositionTabParams): Promise<{
+    changed: boolean;
+    before: PublicTab;
+    after: PublicTab;
+  }> {
+    if (!Number.isInteger(params.index) || params.index < -1) {
+      throw new FirefoxTabsError("INVALID_TAB_INDEX", "index must be -1 (end of window) or a non-negative integer.");
+    }
+
+    const tab = await this.resolveTab(params.selector);
+    const before = publicTab(tab);
+    const windowTabs = await this.browserApi.tabs.query({ windowId: tab.windowId });
+    const targetIndex = params.index === -1 ? windowTabs.length - 1 : Math.min(params.index, windowTabs.length - 1);
+    if (targetIndex < 0 || tab.index === targetIndex) {
+      return { changed: false, before, after: before };
+    }
+
+    await this.browserApi.tabs.move(before.id, { index: targetIndex });
+    const after = publicTab(await this.browserApi.tabs.get(before.id));
+    if (after.index !== targetIndex) {
+      throw new FirefoxTabsError("VERIFICATION_FAILED", "Firefox did not report the expected position after moving the tab.", {
+        expectedIndex: targetIndex,
         after,
       });
     }

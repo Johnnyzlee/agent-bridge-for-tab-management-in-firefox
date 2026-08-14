@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [0.5.1] - 2026-08-15
+
+- Add the `move_firefox_tab` tool: move one exactly identified tab to a target position within its own window (0-based index or `-1` for the end), with index validation, out-of-range clamping, no-op detection, and post-move verification.
+- Rebuild and re-sign the extension as v0.5.1 through the AMO unlisted channel.
+
 ## [0.5.0] - 2026-08-15
 
 - Add a shared broker that multiplexes multiple MCP agents over the single Firefox connection: the first server instance becomes the broker on the extension port plus a new agent port (`127.0.0.1:8767`), and later instances connect as authenticated clients.

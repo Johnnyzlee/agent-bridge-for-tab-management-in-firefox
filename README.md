@@ -11,6 +11,7 @@ Everything runs locally. No accounts, no cloud, no telemetry.
 - Lists your live tabs and tab groups.
 - Opens `http`/`https` pages in the background (no focus stealing).
 - Creates, moves, and removes tab groups with exact names.
+- Moves tabs to a target position in their window.
 - Refuses ambiguous matches, duplicate group names, cross-window grouping, and unpinning without your OK.
 - Verifies every change against Firefox before reporting success.
 
@@ -40,6 +41,14 @@ Changed your mind about the structure? Just say so:
 
 The agent moves tabs with exact matching and verifies the final group IDs — no drag-and-drop across a sea of tabs.
 
+### Put the important tab first
+
+Working across many open pages? Keep order meaningful:
+
+> Move the tab for "quarterly report" to the front of the window.
+
+Exact matching finds the right tab and `move_firefox_tab` places it where you want, verified against Firefox.
+
 ### Reset when a task is done
 
 > Ungroup everything in this window.
@@ -54,7 +63,7 @@ Make it a habit: throughout the day, send article links, docs, and reference pag
 
 ### 1. Install the extension
 
-Download `tab_management_agent_bridge_for_firefox-0.5.0.xpi` from the [latest release](https://github.com/Johnnyzlee/agent-bridge-for-tab-management-in-firefox/releases) and open it with Firefox.
+Download `tab_management_agent_bridge_for_firefox-0.5.1.xpi` from the [latest release](https://github.com/Johnnyzlee/agent-bridge-for-tab-management-in-firefox/releases) and open it with Firefox.
 
 ### 2. Run setup once
 

@@ -4,7 +4,7 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
-## [0.5.3] - 2026-08-15
+## [0.5.4] - 2026-08-15
 
 - Add `list_firefox_windows`: per-window tab and group counts with each group's title, collapsed state, and size — the target-picker for cross-window moves.
 - Add `new_firefox_window`: create a background Firefox window (optionally with an explicit http(s) URL) and verify the returned window ID and first tab.

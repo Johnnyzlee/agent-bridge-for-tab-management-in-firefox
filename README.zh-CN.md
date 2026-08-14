@@ -75,7 +75,7 @@
 
 ### 1. 安装扩展
 
-从[最新 Release](https://github.com/Johnnyzlee/agent-bridge-for-tab-management-in-firefox/releases) 下载 `tab_management_agent_bridge_for_firefox-0.5.3.xpi`，用 Firefox 打开即可。
+从[最新 Release](https://github.com/Johnnyzlee/agent-bridge-for-tab-management-in-firefox/releases) 下载 `tab_management_agent_bridge_for_firefox-0.5.4.xpi`，用 Firefox 打开即可。
 
 ### 2. 运行一次 setup
 

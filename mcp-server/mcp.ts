@@ -51,7 +51,7 @@ async function invoke(bridge: BridgeLike, method: Parameters<BridgeLike["call"]>
 
 export function createMcpServer(bridge: BridgeLike): McpServer {
   const server = new McpServer(
-    { name: "firefox-tab-management-agent-mcp", version: "0.5.3" },
+    { name: "firefox-tab-management-agent-mcp", version: "0.5.4" },
     {
       instructions:
         "Open only explicit http/https URLs. Use exact URL or title matching and retry ambiguous matches with tabId. Create groups only when the user requested a new group; use the move tool if an exact group already exists. Never set allowUnpin=true without explicit user confirmation. Every write tool verifies the resulting Firefox state.",

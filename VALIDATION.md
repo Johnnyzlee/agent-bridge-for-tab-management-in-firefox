@@ -2,6 +2,13 @@
 
 Validated locally on 15 August 2026 with Node.js 22.17.0 and npm 10.9.2.
 
+## v0.5.2 development branch (close, merge, rename, collapse, cross-window) — work in progress
+
+| Check | Result |
+|---|---|
+| Vitest | 104 tests passed across 6 files (batch close + existence, group close + empty-group removal, atomic merge incl. cross-window, rename + duplicate rejection, collapse/expand, cross-window move with explicit windowId) |
+| Production build + web-ext lint | Passed |
+
 ## v0.5.1 development branch (move tab to position) — work in progress
 
 | Check | Result |

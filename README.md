@@ -39,7 +39,7 @@ Changed your mind about the structure? Just say so:
 
 > Move every tab from the "Trading" group into "Investing".
 
-The agent moves tabs with exact matching and verifies the final group IDs — no drag-and-drop across a sea of tabs.
+One atomic `merge_firefox_tab_groups` call moves the whole group, removes the now-empty source group, and verifies every tab in the target — no per-tab loops.
 
 ### Put the important tab first
 
@@ -51,9 +51,15 @@ Exact matching finds the right tab and `move_firefox_tab` places it where you wa
 
 ### Reset when a task is done
 
-> Ungroup everything in this window.
+> Close the "Finished" group and ungroup everything else in this window.
 
-One sentence returns the browser to a clean state. Every move is checked against Firefox before it is reported back to you.
+`close_firefox_tab_group` closes a whole group (and its empty shell) with verification; ungrouping returns the rest to a clean state — all checked against Firefox before being reported.
+
+### Keep groups tidy
+
+> Rename the "Temp" group to "Later" and collapse it until I come back.
+
+Exact rename with duplicate-title rejection, plus verified collapse/expand, keep your tab-bar readable with one sentence.
 
 ### Recurring routines
 
@@ -63,7 +69,7 @@ Make it a habit: throughout the day, send article links, docs, and reference pag
 
 ### 1. Install the extension
 
-Download `tab_management_agent_bridge_for_firefox-0.5.1.xpi` from the [latest release](https://github.com/Johnnyzlee/agent-bridge-for-tab-management-in-firefox/releases) and open it with Firefox.
+Download `tab_management_agent_bridge_for_firefox-0.5.2.xpi` from the [latest release](https://github.com/Johnnyzlee/agent-bridge-for-tab-management-in-firefox/releases) and open it with Firefox.
 
 ### 2. Run setup once
 

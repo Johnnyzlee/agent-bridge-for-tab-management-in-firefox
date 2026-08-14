@@ -39,7 +39,7 @@
 
 > 把"交易"组里的所有标签页移到"投资"组。
 
-Agent 用精确匹配移动标签页，并验证最终的 group ID——不用在一堆标签页里拖来拖去。
+一次原子的 `merge_firefox_tab_groups` 调用移动整个组、自动删除空源组并验证目标组里的每个标签页——不需要逐标签页循环。
 
 ### 让重要标签页排最前
 
@@ -51,9 +51,15 @@ Agent 用精确匹配移动标签页，并验证最终的 group ID——不用�
 
 ### 任务结束一键复位
 
-> 把这个窗口里所有标签页取消分组。
+> 关闭"已完成"组，并把窗口里其他标签页全部取消分组。
 
-一句话让浏览器回到清爽状态。每一次移动都会先经过 Firefox 验证，再向你报告结果。
+`close_firefox_tab_group` 连同空组一起验证关闭；取消分组让其余标签页回到干净状态——每一步都先经 Firefox 验证再报告。
+
+### 让标签组保持整洁
+
+> 把"临时"组改名为"稍后"，先折叠起来，等我回来再展开。
+
+精确重命名（拒绝重名）+ 验证折叠/展开，一句话就能让标签栏保持清爽。
 
 ### 固定习惯，自动归档
 
@@ -63,7 +69,7 @@ Agent 用精确匹配移动标签页，并验证最终的 group ID——不用�
 
 ### 1. 安装扩展
 
-从[最新 Release](https://github.com/Johnnyzlee/agent-bridge-for-tab-management-in-firefox/releases) 下载 `tab_management_agent_bridge_for_firefox-0.5.1.xpi`，用 Firefox 打开即可。
+从[最新 Release](https://github.com/Johnnyzlee/agent-bridge-for-tab-management-in-firefox/releases) 下载 `tab_management_agent_bridge_for_firefox-0.5.2.xpi`，用 Firefox 打开即可。
 
 ### 2. 运行一次 setup
 

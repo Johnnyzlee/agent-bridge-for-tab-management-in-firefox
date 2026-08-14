@@ -5,12 +5,17 @@ import {
   type AuthMessage,
   type BridgeRequest,
   type BridgeResponse,
+  type CloseTabGroupParams,
+  type CloseTabsParams,
   type CreateTabGroupParams,
   type ListGroupsParams,
   type ListTabsParams,
+  type MergeTabGroupsParams,
   type MoveTabToGroupParams,
   type OpenTabParams,
+  type RenameTabGroupParams,
   type RepositionTabParams,
+  type SetTabGroupCollapsedParams,
   type UngroupTabParams,
 } from "../shared/protocol.js";
 
@@ -149,6 +154,16 @@ async function dispatch(request: BridgeRequest): Promise<unknown> {
       return controller.moveTabToGroup(request.params as MoveTabToGroupParams);
     case "move_tab":
       return controller.repositionTab(request.params as RepositionTabParams);
+    case "close_tabs":
+      return controller.closeTabs(request.params as CloseTabsParams);
+    case "close_tab_group":
+      return controller.closeTabGroup(request.params as CloseTabGroupParams);
+    case "merge_tab_groups":
+      return controller.mergeTabGroups(request.params as MergeTabGroupsParams);
+    case "rename_tab_group":
+      return controller.renameTabGroup(request.params as RenameTabGroupParams);
+    case "set_tab_group_collapsed":
+      return controller.setTabGroupCollapsed(request.params as SetTabGroupCollapsedParams);
     case "ungroup_tab":
       return controller.ungroupTab(request.params as UngroupTabParams);
   }

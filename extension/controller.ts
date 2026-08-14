@@ -1,11 +1,16 @@
 import { FirefoxTabsError } from "../shared/errors.js";
 import type {
+  CloseTabGroupParams,
+  CloseTabsParams,
   CreateTabGroupParams,
   ListGroupsParams,
   ListTabsParams,
+  MergeTabGroupsParams,
   MoveTabToGroupParams,
   OpenTabParams,
+  RenameTabGroupParams,
   RepositionTabParams,
+  SetTabGroupCollapsedParams,
   TabSelector,
   UngroupTabParams,
 } from "../shared/protocol.js";
@@ -44,13 +49,16 @@ export interface BrowserApi {
     ungroup(tabIds: number | number[]): Promise<void>;
     update(tabId: number, updateProperties: { pinned: boolean }): Promise<BrowserTab>;
     move(tabId: number, moveProperties: { index: number }): Promise<BrowserTab>;
+    moveToWindow(tabId: number, windowId: number): Promise<BrowserTab>;
+    remove(tabIds: number[]): Promise<void>;
   };
   tabGroups: {
     query(queryInfo: Record<string, unknown>): Promise<BrowserTabGroup[]>;
     update(
       groupId: number,
-      updateProperties: { title: string; collapsed?: boolean },
+      updateProperties: { title?: string; collapsed?: boolean },
     ): Promise<BrowserTabGroup>;
+    remove(groupId: number): Promise<void>;
   };
 }
 
@@ -279,6 +287,27 @@ export class FirefoxTabController {
     return matches[0]!;
   }
 
+  async findGroupByTitle(title: string, windowId?: number): Promise<BrowserTabGroup> {
+    const query = windowId === undefined ? {} : { windowId };
+    const groups = await this.browserApi.tabGroups.query(query);
+    const matches = groups.filter((group) => (group.title ?? "") === title);
+    if (matches.length === 0) {
+      throw new FirefoxTabsError(
+        "GROUP_NOT_FOUND",
+        `No tab group named ${JSON.stringify(title)} exists${windowId === undefined ? "" : ` in window ${windowId}`}.`,
+        { windowId, availableGroups: groups },
+      );
+    }
+    if (matches.length > 1) {
+      throw new FirefoxTabsError(
+        "AMBIGUOUS_GROUP",
+        `More than one group named ${JSON.stringify(title)} exists; pass windowId to disambiguate.`,
+        { windowId, candidates: matches },
+      );
+    }
+    return matches[0]!;
+  }
+
   async moveTabToGroup(params: MoveTabToGroupParams): Promise<{
     changed: boolean;
     before: PublicTab;
@@ -288,9 +317,13 @@ export class FirefoxTabController {
     if (params.groupTitle.length === 0) {
       throw new FirefoxTabsError("INVALID_GROUP_TITLE", "groupTitle must not be empty.");
     }
+    if (params.windowId !== undefined && (!Number.isInteger(params.windowId) || params.windowId <= 0)) {
+      throw new FirefoxTabsError("INVALID_WINDOW_ID", "windowId must be a positive integer.");
+    }
 
     const tab = await this.resolveTab(params.selector);
     const before = publicTab(tab);
+    const targetWindowId = params.windowId ?? tab.windowId;
 
     if (tab.pinned && !params.allowUnpin) {
       throw new FirefoxTabsError(
@@ -300,38 +333,193 @@ export class FirefoxTabController {
       );
     }
 
-    const groups = await this.browserApi.tabGroups.query({ windowId: tab.windowId });
-    const matches = groups.filter((group) => (group.title ?? "") === params.groupTitle);
-    if (matches.length === 0) {
-      throw new FirefoxTabsError(
-        "GROUP_NOT_FOUND",
-        `No tab group named ${JSON.stringify(params.groupTitle)} exists in the tab's window.`,
-        { windowId: tab.windowId, availableGroups: groups },
-      );
-    }
-    if (matches.length > 1) {
-      throw new FirefoxTabsError(
-        "AMBIGUOUS_GROUP",
-        `More than one group named ${JSON.stringify(params.groupTitle)} exists in the tab's window.`,
-        { windowId: tab.windowId, candidates: matches },
-      );
+    const group = await this.findGroupByTitle(params.groupTitle, targetWindowId);
+
+    if (tab.groupId === group.id && tab.windowId === group.windowId) {
+      return { changed: false, before, after: before, group };
     }
 
-    const group = matches[0]!;
-    if (tab.groupId === group.id) {
-      return { changed: false, before, after: before, group };
+    if (tab.windowId !== group.windowId) {
+      await this.browserApi.tabs.moveToWindow(before.id, group.windowId);
     }
 
     await this.browserApi.tabs.group({ tabIds: [before.id], groupId: group.id });
     const after = publicTab(await this.browserApi.tabs.get(before.id));
-    if (after.groupId !== group.id) {
-      throw new FirefoxTabsError("VERIFICATION_FAILED", "Firefox did not report the expected group after moving the tab.", {
-        expectedGroupId: group.id,
-        after,
-      });
+    if (after.groupId !== group.id || after.windowId !== group.windowId) {
+      throw new FirefoxTabsError(
+        "VERIFICATION_FAILED",
+        "Firefox did not report the expected group and window after moving the tab.",
+        { expectedGroupId: group.id, expectedWindowId: group.windowId, after },
+      );
     }
 
     return { changed: true, before, after, group };
+  }
+
+  async closeTabs(params: CloseTabsParams): Promise<{
+    changed: boolean;
+    closedTabs: PublicTab[];
+  }> {
+    if (params.tabIds.length === 0) {
+      throw new FirefoxTabsError("INVALID_TAB_IDS", "tabIds must contain at least one tab ID.");
+    }
+    if (params.tabIds.some((tabId) => !Number.isInteger(tabId) || tabId <= 0)) {
+      throw new FirefoxTabsError("INVALID_TAB_IDS", "Every tab ID must be a positive integer.");
+    }
+    if (new Set(params.tabIds).size !== params.tabIds.length) {
+      throw new FirefoxTabsError("INVALID_TAB_IDS", "tabIds must not contain duplicates.");
+    }
+
+    const before = await Promise.all(
+      params.tabIds.map((tabId) => this.browserApi.tabs.get(tabId).catch(() => undefined)),
+    );
+    if (before.some((tab) => tab === undefined)) {
+      throw new FirefoxTabsError("TAB_NOT_FOUND", "At least one requested tab does not exist.", {
+        tabIds: params.tabIds,
+      });
+    }
+    const closedTabs = before.map((tab) => publicTab(tab!));
+
+    await this.browserApi.tabs.remove(params.tabIds);
+    const remaining = await this.browserApi.tabs.query({});
+    const stillThere = params.tabIds.filter((id) => remaining.some((tab) => tab.id === id));
+    if (stillThere.length > 0) {
+      throw new FirefoxTabsError("VERIFICATION_FAILED", "Firefox still reports closed tabs as open.", {
+        tabIds: stillThere,
+      });
+    }
+    return { changed: true, closedTabs };
+  }
+
+  async closeTabGroup(params: CloseTabGroupParams): Promise<{
+    changed: boolean;
+    closedTabs: PublicTab[];
+    removedGroup: boolean;
+  }> {
+    const group = await this.findGroupByTitle(params.groupTitle, params.windowId);
+    const windowTabs = await this.browserApi.tabs.query({ windowId: group.windowId });
+    const groupTabs = windowTabs.filter((tab) => tab.groupId === group.id);
+    const closedTabs = groupTabs.map(publicTab);
+    const ids = groupTabs.map((tab) => publicTab(tab).id);
+
+    if (ids.length > 0) {
+      await this.browserApi.tabs.remove(ids);
+    }
+    await this.browserApi.tabGroups.remove(group.id);
+
+    const remaining = await this.browserApi.tabs.query({ windowId: group.windowId });
+    const stillThere = ids.filter((id) => remaining.some((tab) => tab.id === id));
+    if (stillThere.length > 0) {
+      throw new FirefoxTabsError("VERIFICATION_FAILED", "Firefox still reports closed group tabs as open.", {
+        tabIds: stillThere,
+      });
+    }
+    const groups = await this.browserApi.tabGroups.query({ windowId: group.windowId });
+    if (groups.some((candidate) => candidate.id === group.id)) {
+      throw new FirefoxTabsError("VERIFICATION_FAILED", "Firefox still reports the group after closing it.", {
+        groupId: group.id,
+      });
+    }
+    return { changed: true, closedTabs, removedGroup: true };
+  }
+
+  async mergeTabGroups(params: MergeTabGroupsParams): Promise<{
+    changed: boolean;
+    merged: number;
+    removedGroup: boolean;
+    group: BrowserTabGroup;
+    tabs: PublicTab[];
+  }> {
+    if (params.from === params.to) {
+      throw new FirefoxTabsError("INVALID_MERGE_TARGETS", "from and to must be different group titles.");
+    }
+    const fromGroup = await this.findGroupByTitle(params.from, params.windowId);
+    const toGroup = await this.findGroupByTitle(params.to, params.windowId);
+    if (fromGroup.id === toGroup.id) {
+      throw new FirefoxTabsError("INVALID_MERGE_TARGETS", "from and to must be different groups.");
+    }
+
+    const windowTabs = await this.browserApi.tabs.query({ windowId: fromGroup.windowId });
+    const fromTabs = windowTabs.filter((tab) => tab.groupId === fromGroup.id);
+    const fromIds = fromTabs.map((tab) => publicTab(tab).id);
+
+    if (fromIds.length > 0) {
+      if (fromGroup.windowId !== toGroup.windowId) {
+        for (const tabId of fromIds) {
+          await this.browserApi.tabs.moveToWindow(tabId, toGroup.windowId);
+        }
+      }
+      await this.browserApi.tabs.group({ tabIds: fromIds, groupId: toGroup.id });
+    }
+    await this.browserApi.tabGroups.remove(fromGroup.id);
+
+    const merged = await Promise.all(fromIds.map((tabId) => this.browserApi.tabs.get(tabId)));
+    const tabs = merged.map(publicTab);
+    if (tabs.some((tab) => tab.groupId !== toGroup.id || tab.windowId !== toGroup.windowId)) {
+      throw new FirefoxTabsError("VERIFICATION_FAILED", "Firefox did not report the expected group after merging.", {
+        expectedGroupId: toGroup.id,
+        expectedWindowId: toGroup.windowId,
+        tabs,
+      });
+    }
+    const groups = await this.browserApi.tabGroups.query({ windowId: fromGroup.windowId });
+    if (groups.some((candidate) => candidate.id === fromGroup.id)) {
+      throw new FirefoxTabsError("VERIFICATION_FAILED", "Firefox still reports the source group after merging.", {
+        groupId: fromGroup.id,
+      });
+    }
+    return { changed: true, merged: tabs.length, removedGroup: true, group: toGroup, tabs };
+  }
+
+  async renameTabGroup(params: RenameTabGroupParams): Promise<{
+    changed: boolean;
+    before: BrowserTabGroup;
+    after: BrowserTabGroup;
+  }> {
+    const newTitle = params.newTitle.trim();
+    if (newTitle.length === 0) {
+      throw new FirefoxTabsError("INVALID_GROUP_TITLE", "newTitle must not be empty or whitespace only.");
+    }
+    const group = await this.findGroupByTitle(params.groupTitle, params.windowId);
+    if ((group.title ?? "") === newTitle) {
+      return { changed: false, before: group, after: group };
+    }
+    const existing = await this.browserApi.tabGroups.query({ windowId: group.windowId });
+    if (existing.some((candidate) => candidate.id !== group.id && (candidate.title ?? "") === newTitle)) {
+      throw new FirefoxTabsError(
+        "GROUP_ALREADY_EXISTS",
+        `A tab group named ${JSON.stringify(newTitle)} already exists in this window.`,
+        { windowId: group.windowId, candidates: existing },
+      );
+    }
+
+    const after = await this.browserApi.tabGroups.update(group.id, { title: newTitle });
+    if ((after.title ?? "") !== newTitle || after.id !== group.id) {
+      throw new FirefoxTabsError("VERIFICATION_FAILED", "Firefox did not report the expected group title.", {
+        expected: { groupId: group.id, title: newTitle },
+        after,
+      });
+    }
+    return { changed: true, before: group, after };
+  }
+
+  async setTabGroupCollapsed(params: SetTabGroupCollapsedParams): Promise<{
+    changed: boolean;
+    before: BrowserTabGroup;
+    after: BrowserTabGroup;
+  }> {
+    const group = await this.findGroupByTitle(params.groupTitle, params.windowId);
+    if (group.collapsed === params.collapsed) {
+      return { changed: false, before: group, after: group };
+    }
+    const after = await this.browserApi.tabGroups.update(group.id, { collapsed: params.collapsed });
+    if (after.collapsed !== params.collapsed || after.id !== group.id) {
+      throw new FirefoxTabsError("VERIFICATION_FAILED", "Firefox did not report the expected collapsed state.", {
+        expected: { groupId: group.id, collapsed: params.collapsed },
+        after,
+      });
+    }
+    return { changed: true, before: group, after };
   }
 
   async ungroupTab(params: UngroupTabParams): Promise<{

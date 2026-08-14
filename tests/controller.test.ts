@@ -17,6 +17,9 @@ function createBrowser(initialTabs: BrowserTab[], groups: BrowserTabGroup[]): Br
   ungroupCalls: Array<number | number[]>;
   updateGroupCalls: Array<{ groupId: number; properties: { title: string; collapsed?: boolean } }>;
   moveCalls: Array<{ tabId: number; index: number }>;
+  moveToWindowCalls: Array<{ tabId: number; windowId: number }>;
+  removeCalls: Array<number[]>;
+  removeGroupCalls: Array<number>;
 } {
   const tabs = initialTabs.map((tab) => ({ ...tab }));
   const mutableGroups = groups.map((group) => ({ ...group }));
@@ -28,12 +31,18 @@ function createBrowser(initialTabs: BrowserTab[], groups: BrowserTabGroup[]): Br
   const ungroupCalls: Array<number | number[]> = [];
   const updateGroupCalls: Array<{ groupId: number; properties: { title: string; collapsed?: boolean } }> = [];
   const moveCalls: Array<{ tabId: number; index: number }> = [];
+  const moveToWindowCalls: Array<{ tabId: number; windowId: number }> = [];
+  const removeCalls: Array<number[]> = [];
+  const removeGroupCalls: Array<number> = [];
   return {
     createCalls,
     groupCalls,
     ungroupCalls,
     updateGroupCalls,
     moveCalls,
+    moveToWindowCalls,
+    removeCalls,
+    removeGroupCalls,
     tabs: {
       query: vi.fn(async (query: Record<string, unknown>) =>
         query.lastFocusedWindow ? tabs.filter((tab) => tab.windowId === 1) : tabs.map((tab) => ({ ...tab })),
@@ -111,6 +120,21 @@ function createBrowser(initialTabs: BrowserTab[], groups: BrowserTabGroup[]): Br
         });
         return { ...tab };
       }),
+      moveToWindow: vi.fn(async (id, windowId) => {
+        moveToWindowCalls.push({ tabId: id, windowId });
+        const tab = tabs.find((candidate) => candidate.id === id);
+        if (!tab) throw new Error("missing tab");
+        tab.windowId = windowId;
+        tab.index = tabs.filter((candidate) => candidate.windowId === windowId).length;
+        return { ...tab };
+      }),
+      remove: vi.fn(async (ids) => {
+        removeCalls.push(ids);
+        for (const id of ids) {
+          const index = tabs.findIndex((candidate) => candidate.id === id);
+          if (index >= 0) tabs.splice(index, 1);
+        }
+      }),
     },
     tabGroups: {
       query: vi.fn(async (query: Record<string, unknown>) =>
@@ -122,9 +146,14 @@ function createBrowser(initialTabs: BrowserTab[], groups: BrowserTabGroup[]): Br
         updateGroupCalls.push({ groupId, properties });
         const group = mutableGroups.find((candidate) => candidate.id === groupId);
         if (!group) throw new Error("missing group");
-        group.title = properties.title;
+        if (properties.title !== undefined) group.title = properties.title;
         if (properties.collapsed !== undefined) group.collapsed = properties.collapsed;
         return { ...group };
+      }),
+      remove: vi.fn(async (groupId) => {
+        removeGroupCalls.push(groupId);
+        const index = mutableGroups.findIndex((candidate) => candidate.id === groupId);
+        if (index >= 0) mutableGroups.splice(index, 1);
       }),
     },
   };
@@ -369,5 +398,135 @@ describe("FirefoxTabController", () => {
       controller.repositionTab({ selector: { url: targetUrl }, index: 0 }),
     ).rejects.toMatchObject({ code: "AMBIGUOUS_TAB" } satisfies Partial<FirefoxTabsError>);
     expect(browser.moveCalls).toHaveLength(0);
+  });
+
+  it("closes a batch of tabs by id and verifies they are gone", async () => {
+    const secondTab: BrowserTab = { ...targetTab, id: 11, index: 2 };
+    const browser = createBrowser([targetTab, secondTab], []);
+    const controller = new FirefoxTabController(browser);
+    const result = await controller.closeTabs({ tabIds: [10, 11] });
+
+    expect(result.changed).toBe(true);
+    expect(result.closedTabs.map((tab) => tab.id)).toEqual([10, 11]);
+    expect(browser.removeCalls).toEqual([[10, 11]]);
+  });
+
+  it("rejects closing unknown, empty, or duplicate tab id batches", async () => {
+    const browser = createBrowser([targetTab], []);
+    const controller = new FirefoxTabController(browser);
+    await expect(controller.closeTabs({ tabIds: [999] })).rejects.toMatchObject({ code: "TAB_NOT_FOUND" });
+    await expect(controller.closeTabs({ tabIds: [] })).rejects.toMatchObject({ code: "INVALID_TAB_IDS" });
+    await expect(controller.closeTabs({ tabIds: [10, 10] })).rejects.toMatchObject({ code: "INVALID_TAB_IDS" });
+    expect(browser.removeCalls).toHaveLength(0);
+  });
+
+  it("closes every tab of an exactly named group and removes the group", async () => {
+    const groupedTab: BrowserTab = { ...targetTab, groupId: 42 };
+    const secondTab: BrowserTab = { ...targetTab, id: 11, index: 2, groupId: 42 };
+    const browser = createBrowser([groupedTab, secondTab], [browsingGroup]);
+    const controller = new FirefoxTabController(browser);
+    const result = await controller.closeTabGroup({ groupTitle: "Browsering" });
+
+    expect(result.removedGroup).toBe(true);
+    expect(result.closedTabs.map((tab) => tab.id)).toEqual([10, 11]);
+    expect(browser.removeCalls).toEqual([[10, 11]]);
+    expect(browser.removeGroupCalls).toEqual([42]);
+  });
+
+  it("removes an empty group when closing it", async () => {
+    const browser = createBrowser([targetTab], [browsingGroup]);
+    const controller = new FirefoxTabController(browser);
+    const result = await controller.closeTabGroup({ groupTitle: "Browsering" });
+
+    expect(result.closedTabs).toHaveLength(0);
+    expect(result.removedGroup).toBe(true);
+    expect(browser.removeCalls).toHaveLength(0);
+    expect(browser.removeGroupCalls).toEqual([42]);
+  });
+
+  it("merges a source group into a target group and removes the empty source", async () => {
+    const sourceGroup: BrowserTabGroup = { id: 42, windowId: 1, title: "Trading", color: "red", collapsed: false };
+    const targetGroup: BrowserTabGroup = { id: 43, windowId: 1, title: "Investing", color: "blue", collapsed: false };
+    const fromTab: BrowserTab = { ...targetTab, groupId: 42 };
+    const fromTab2: BrowserTab = { ...targetTab, id: 11, index: 2, groupId: 42 };
+    const browser = createBrowser([fromTab, fromTab2], [sourceGroup, targetGroup]);
+    const controller = new FirefoxTabController(browser);
+    const result = await controller.mergeTabGroups({ from: "Trading", to: "Investing" });
+
+    expect(result.merged).toBe(2);
+    expect(result.removedGroup).toBe(true);
+    expect(result.group.id).toBe(43);
+    expect(result.tabs.every((tab) => tab.groupId === 43)).toBe(true);
+    expect(browser.removeGroupCalls).toEqual([42]);
+  });
+
+  it("rejects merging a group into itself", async () => {
+    const browser = createBrowser([targetTab], [browsingGroup]);
+    const controller = new FirefoxTabController(browser);
+    await expect(
+      controller.mergeTabGroups({ from: "Browsering", to: "Browsering" }),
+    ).rejects.toMatchObject({ code: "INVALID_MERGE_TARGETS" });
+  });
+
+  it("merges groups across windows by moving tabs to the target window", async () => {
+    const sourceGroup: BrowserTabGroup = { id: 42, windowId: 1, title: "Trading", color: "red", collapsed: false };
+    const targetGroup: BrowserTabGroup = { id: 43, windowId: 2, title: "Investing", color: "blue", collapsed: false };
+    const fromTab: BrowserTab = { ...targetTab, groupId: 42 };
+    const browser = createBrowser([fromTab], [sourceGroup, targetGroup]);
+    const controller = new FirefoxTabController(browser);
+    const result = await controller.mergeTabGroups({ from: "Trading", to: "Investing" });
+
+    expect(browser.moveToWindowCalls).toEqual([{ tabId: 10, windowId: 2 }]);
+    expect(result.tabs).toHaveLength(1);
+    expect(result.tabs[0]).toMatchObject({ groupId: 43, windowId: 2 });
+    expect(browser.removeGroupCalls).toEqual([42]);
+  });
+
+  it("renames a group and rejects duplicate new titles", async () => {
+    const otherGroup: BrowserTabGroup = { id: 43, windowId: 1, title: "Research", color: "blue", collapsed: false };
+    const browser = createBrowser([targetTab], [browsingGroup, otherGroup]);
+    const controller = new FirefoxTabController(browser);
+    const result = await controller.renameTabGroup({ groupTitle: "Browsering", newTitle: "Reading" });
+    expect(result.changed).toBe(true);
+    expect(result.after.title).toBe("Reading");
+
+    await expect(
+      controller.renameTabGroup({ groupTitle: "Reading", newTitle: "Research" }),
+    ).rejects.toMatchObject({ code: "GROUP_ALREADY_EXISTS" });
+  });
+
+  it("collapses and expands a group with verification", async () => {
+    const browser = createBrowser([targetTab], [browsingGroup]);
+    const controller = new FirefoxTabController(browser);
+    const collapsed = await controller.setTabGroupCollapsed({ groupTitle: "Browsering", collapsed: true });
+    expect(collapsed.changed).toBe(true);
+    expect(collapsed.after.collapsed).toBe(true);
+
+    const noop = await controller.setTabGroupCollapsed({ groupTitle: "Browsering", collapsed: true });
+    expect(noop.changed).toBe(false);
+  });
+
+  it("moves a tab into a group in another window when windowId is given", async () => {
+    const otherWindowGroup: BrowserTabGroup = { id: 43, windowId: 2, title: "Research", color: "blue", collapsed: false };
+    const browser = createBrowser([targetTab], [otherWindowGroup]);
+    const controller = new FirefoxTabController(browser);
+    const result = await controller.moveTabToGroup({
+      selector: { tabId: 10 },
+      groupTitle: "Research",
+      windowId: 2,
+    });
+
+    expect(browser.moveToWindowCalls).toEqual([{ tabId: 10, windowId: 2 }]);
+    expect(result.after).toMatchObject({ groupId: 43, windowId: 2 });
+  });
+
+  it("still rejects cross-window moves without an explicit windowId", async () => {
+    const otherWindowGroup: BrowserTabGroup = { id: 43, windowId: 2, title: "Research", color: "blue", collapsed: false };
+    const browser = createBrowser([targetTab], [otherWindowGroup]);
+    const controller = new FirefoxTabController(browser);
+    await expect(
+      controller.moveTabToGroup({ selector: { tabId: 10 }, groupTitle: "Research" }),
+    ).rejects.toMatchObject({ code: "GROUP_NOT_FOUND" });
+    expect(browser.moveToWindowCalls).toHaveLength(0);
   });
 });

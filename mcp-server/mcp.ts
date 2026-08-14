@@ -51,7 +51,7 @@ async function invoke(bridge: BridgeLike, method: Parameters<BridgeLike["call"]>
 
 export function createMcpServer(bridge: BridgeLike): McpServer {
   const server = new McpServer(
-    { name: "firefox-tab-management-agent-mcp", version: "0.5.1" },
+    { name: "firefox-tab-management-agent-mcp", version: "0.5.2" },
     {
       instructions:
         "Open only explicit http/https URLs. Use exact URL or title matching and retry ambiguous matches with tabId. Create groups only when the user requested a new group; use the move tool if an exact group already exists. Never set allowUnpin=true without explicit user confirmation. Every write tool verifies the resulting Firefox state.",
@@ -132,6 +132,12 @@ export function createMcpServer(bridge: BridgeLike): McpServer {
       inputSchema: z.object({
         selector: selectorSchema,
         groupTitle: z.string().min(1).describe("Existing group title; matching is exact and case-sensitive."),
+        windowId: z
+          .number()
+          .int()
+          .positive()
+          .optional()
+          .describe("Target window for the group; omit to use the tab's own window."),
         allowUnpin: z
           .boolean()
           .optional()
@@ -166,6 +172,96 @@ export function createMcpServer(bridge: BridgeLike): McpServer {
       inputSchema: z.object({ selector: selectorSchema }),
     },
     async (params) => invoke(bridge, "ungroup_tab", params),
+  );
+
+  server.registerTool(
+    "close_firefox_tabs",
+    {
+      description:
+        "Close a batch of exactly identified Firefox tabs by their tabId and verify that Firefox no longer reports them.",
+      inputSchema: z.object({
+        tabIds: z
+          .array(z.number().int().positive())
+          .min(1)
+          .describe("Unique tab IDs returned by list_firefox_tabs or search_firefox_tabs."),
+      }),
+    },
+    async (params) => invoke(bridge, "close_tabs", params),
+  );
+
+  server.registerTool(
+    "close_firefox_tab_group",
+    {
+      description:
+        "Close every tab in one exactly named Firefox group (and remove the now-empty group) after verification.",
+      inputSchema: z.object({
+        groupTitle: z.string().min(1).describe("Existing group title; matching is exact and case-sensitive."),
+        windowId: z
+          .number()
+          .int()
+          .positive()
+          .optional()
+          .describe("Window to look in; required when the title exists in more than one window."),
+      }),
+    },
+    async (params) => invoke(bridge, "close_tab_group", params),
+  );
+
+  server.registerTool(
+    "merge_firefox_tab_groups",
+    {
+      description:
+        "Move every tab of the source group into the target group in one verified operation, then remove the now-empty source group.",
+      inputSchema: z.object({
+        from: z.string().min(1).describe("Source group title; matching is exact and case-sensitive."),
+        to: z.string().min(1).describe("Target group title; matching is exact and case-sensitive."),
+        windowId: z
+          .number()
+          .int()
+          .positive()
+          .optional()
+          .describe("Window for both groups; required when the titles exist in more than one window."),
+      }),
+    },
+    async (params) => invoke(bridge, "merge_tab_groups", params),
+  );
+
+  server.registerTool(
+    "rename_firefox_tab_group",
+    {
+      description:
+        "Rename one exactly named Firefox group to a new exact title and verify the result; fails if the new title already exists in the window.",
+      inputSchema: z.object({
+        groupTitle: z.string().min(1).describe("Existing group title; matching is exact and case-sensitive."),
+        newTitle: z.string().trim().min(1).describe("New exact group title."),
+        windowId: z
+          .number()
+          .int()
+          .positive()
+          .optional()
+          .describe("Window to look in; required when the title exists in more than one window."),
+      }),
+    },
+    async (params) => invoke(bridge, "rename_tab_group", params),
+  );
+
+  server.registerTool(
+    "set_firefox_tab_group_collapsed",
+    {
+      description:
+        "Collapse or expand one exactly named Firefox group and verify the resulting collapsed state.",
+      inputSchema: z.object({
+        groupTitle: z.string().min(1).describe("Existing group title; matching is exact and case-sensitive."),
+        collapsed: z.boolean().describe("Whether the group should be collapsed."),
+        windowId: z
+          .number()
+          .int()
+          .positive()
+          .optional()
+          .describe("Window to look in; required when the title exists in more than one window."),
+      }),
+    },
+    async (params) => invoke(bridge, "set_tab_group_collapsed", params),
   );
 
   return server;

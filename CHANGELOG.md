@@ -4,6 +4,14 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [0.5.2] - 2026-08-15
+
+- Add `close_firefox_tabs` (batch close by tabId with existence checks and verification) and `close_firefox_tab_group` (close a whole exact group and remove the empty group).
+- Add `merge_firefox_tab_groups`: atomically move every tab of one exact group into another (including across windows), remove the empty source group, and verify every tab.
+- Extend `move_firefox_tab_to_group` with an explicit `windowId` to move a tab into a group in another window via `tabs.moveToWindow`; cross-window moves still require the explicit target.
+- Add `rename_firefox_tab_group` (exact rename, duplicate-title rejection) and `set_firefox_tab_group_collapsed` (verified collapse/expand).
+- Rebuild and re-sign the extension as v0.5.2 through the AMO unlisted channel.
+
 ## [0.5.1] - 2026-08-15
 
 - Add the `move_firefox_tab` tool: move one exactly identified tab to a target position within its own window (0-based index or `-1` for the end), with index validation, out-of-range clamping, no-op detection, and post-move verification.

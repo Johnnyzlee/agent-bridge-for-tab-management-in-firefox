@@ -2,7 +2,7 @@
 
 ## Supported versions
 
-Security fixes are currently provided for the latest `0.3.x` release and the default branch. Earlier development builds are unsupported.
+Security fixes are currently provided for the latest `0.5.x` release and the default branch. Earlier development builds are unsupported.
 
 ## Reporting a vulnerability
 
@@ -31,4 +31,4 @@ Version 0.4.0 supports one stdio MCP server instance on one configured bridge po
 
 ## Credential handling
 
-Treat the bridge token as a local secret even though users never see it. Do not commit it, paste it into logs or issues, or reuse it for another service. Deleting the user-level configuration directory (for example with `firefox-tab-management-agent-mcp uninstall --purge`) generates a fresh token on the next `setup`. The v0.3.1 environment-variable overrides remain supported; if they are set, they take precedence over the configuration file and must be managed with the same care.
+Treat the bridge token as a local secret even though users never see it. Do not commit it, paste it into logs or issues, or reuse it for another service. Deleting the user-level configuration directory (for example with `firefox-tab-management-agent-mcp uninstall --purge`) generates a fresh token on the next `setup`. The environment-variable overrides (`FIREFOX_TABS_BRIDGE_TOKEN` / `FIREFOX_TABS_BRIDGE_PORT` / `FIREFOX_TABS_BRIDGE_BROKER_PORT`) remain supported for development and compatibility; if they are set, they take precedence over the configuration file and must be managed with the same care.

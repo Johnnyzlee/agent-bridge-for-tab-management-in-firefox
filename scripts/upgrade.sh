@@ -10,20 +10,20 @@ set -e
 REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$REPO_ROOT"
 
-echo "[1/6] Pulling latest code..."
+echo "[1/7] Pulling latest code..."
 git fetch origin
 git pull --ff-only origin main
 
-echo "[2/6] Installing locked dependencies..."
+echo "[2/7] Installing locked dependencies..."
 npm ci
 
-echo "[3/6] Building server, native host, and extension..."
+echo "[3/7] Building server, native host, and extension..."
 npm run build
 
 VERSION="$(node -p "require('./package.json').version")"
-echo "[4/6] Version: ${VERSION}"
+echo "[4/7] Version: ${VERSION}"
 
-echo "[5/6] Restarting MCP clients..."
+echo "[5/7] Restarting MCP clients..."
 RESTARTED=""
 if command -v hermes >/dev/null 2>&1; then
   hermes gateway restart || true
@@ -52,7 +52,7 @@ if [ ! -f "$XPI" ]; then
   fi
 fi
 
-echo "[6/6] Opening the signed XPI in Firefox. Confirm the installation prompt."
+echo "[6/7] Opening the signed XPI in Firefox. Confirm the installation prompt."
 open -a Firefox "$XPI"
 
 echo "[7/7] Syncing the Agent Skill to hosts where it is already installed..."

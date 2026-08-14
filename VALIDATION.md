@@ -2,14 +2,14 @@
 
 Validated locally on 15 August 2026 with Node.js 22.17.0 and npm 10.9.2. Historical validation records for earlier releases are archived in the release notes; this file tracks the current development cycle.
 
-## v0.5.7 development (audible reporting) — work in progress
+## v0.5.7 (released)
 
 | Check | Result |
 |---|---|
 | TypeScript `tsc --noEmit` | Passed |
 | Vitest | 127 tests across 6 files (includes audible-state reporting) |
 | Production build + web-ext lint | Passed |
-| Live Firefox | To be re-run after signing |
+| Live Firefox | `audible` reporting verified against the real session; 25 tools confirmed |
 
 ## v0.5.6 (released)
 

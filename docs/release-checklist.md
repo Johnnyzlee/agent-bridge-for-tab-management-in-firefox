@@ -1,6 +1,13 @@
 # Release Checklist
 
-## Current: v0.5.9 (waiter race fix) — released, server-only
+## Current: v0.5.10 (review fixes) — released
+
+- [x] Stale `search_firefox_tabs` doc reference removed.
+- [x] Waiters rejected immediately with `EXTENSION_DISCONNECTED` on extension disconnect.
+- [x] `close_firefox_tabs` validates IDs before the `confirmClose` check.
+- [x] Tests (132).
+
+## Released: v0.5.9 (waiter race fix) — server-only
 
 - [x] Same-tabId multi-waiter race fixed (all waiters answered; no timer leak).
 - [x] Server-only; extension not re-signed.

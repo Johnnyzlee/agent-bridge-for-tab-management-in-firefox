@@ -11,6 +11,7 @@ interface TabWaiter {
   timer: NodeJS.Timeout;
   agent?: WebSocket;
   respond(result: unknown): void;
+  reject(error: FirefoxTabsError): void;
 }
 
 export interface TabEventTrackerOptions {
@@ -88,6 +89,7 @@ export class TabEventTracker {
       }, timeoutMs),
       agent,
       respond,
+      reject: (error) => respondError(error.code, error.message),
     };
     this.addWaiter(tabId, waiter);
   }
@@ -113,9 +115,20 @@ export class TabEventTracker {
           clearTimeout(waiter.timer);
           resolve(result);
         },
+        reject,
       };
       this.addWaiter(tabId, waiter);
     });
+  }
+
+  rejectAllWaiters(error: FirefoxTabsError): void {
+    for (const [tabId, waiters] of this.tabWaiters) {
+      for (const waiter of waiters) {
+        clearTimeout(waiter.timer);
+        waiter.reject(error);
+      }
+    }
+    this.tabWaiters.clear();
   }
 
   rejectWaitersForAgent(agent: WebSocket): void {

@@ -416,12 +416,6 @@ export class FirefoxTabController {
     changed: boolean;
     closedTabs: PublicTab[];
   }> {
-    if (!params.confirmClose) {
-      throw new FirefoxTabsError(
-        "CLOSE_REQUIRES_CONFIRMATION",
-        "Closing tabs is irreversible. Retry with confirmClose=true only after the user explicitly confirmed the exact tab IDs.",
-      );
-    }
     if (params.tabIds.length === 0) {
       throw new FirefoxTabsError("INVALID_TAB_IDS", "tabIds must contain at least one tab ID.");
     }
@@ -430,6 +424,12 @@ export class FirefoxTabController {
     }
     if (new Set(params.tabIds).size !== params.tabIds.length) {
       throw new FirefoxTabsError("INVALID_TAB_IDS", "tabIds must not contain duplicates.");
+    }
+    if (!params.confirmClose) {
+      throw new FirefoxTabsError(
+        "CLOSE_REQUIRES_CONFIRMATION",
+        "Closing tabs is irreversible. Retry with confirmClose=true only after the user explicitly confirmed the exact tab IDs.",
+      );
     }
 
     const before = await Promise.all(

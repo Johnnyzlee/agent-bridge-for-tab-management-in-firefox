@@ -150,6 +150,7 @@ export class Broker implements BridgeLike {
       if (this.extensionClient === socket) {
         this.extensionClient = undefined;
         this.rejectAllPending(new FirefoxTabsError("EXTENSION_DISCONNECTED", "The Firefox extension disconnected."));
+        this.tabEvents.rejectAllWaiters(new FirefoxTabsError("EXTENSION_DISCONNECTED", "The Firefox extension disconnected."));
       }
     });
   }

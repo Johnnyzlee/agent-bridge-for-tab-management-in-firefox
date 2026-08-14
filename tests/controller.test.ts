@@ -463,6 +463,9 @@ describe("FirefoxTabController", () => {
   it("rejects closing unknown, empty, or duplicate tab id batches", async () => {
     const browser = createBrowser([targetTab], []);
     const controller = new FirefoxTabController(browser);
+    await expect(
+      controller.closeTabs({ tabIds: [0] }),
+    ).rejects.toMatchObject({ code: "INVALID_TAB_IDS" });
     await expect(controller.closeTabs({ tabIds: [999], confirmClose: true })).rejects.toMatchObject({ code: "TAB_NOT_FOUND" });
     await expect(controller.closeTabs({ tabIds: [], confirmClose: true })).rejects.toMatchObject({ code: "INVALID_TAB_IDS" });
     await expect(controller.closeTabs({ tabIds: [10, 10], confirmClose: true })).rejects.toMatchObject({ code: "INVALID_TAB_IDS" });

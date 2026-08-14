@@ -2,6 +2,13 @@
 
 Validated locally on 15 August 2026 with Node.js 22.17.0 and npm 10.9.2. Historical validation records for earlier releases are archived in the release notes; this file tracks the current development cycle.
 
+## v0.5.10 (released)
+
+| Check | Result |
+|---|---|
+| Vitest | 132 tests (waiter rejection on extension disconnect; invalid-IDs-before-confirm ordering; stale doc reference fixed) |
+| Live Firefox | To be re-run after signing |
+
 ## v0.5.9 (released — server-only, no re-sign)
 
 | Check | Result |

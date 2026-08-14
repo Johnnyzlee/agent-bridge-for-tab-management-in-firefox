@@ -358,6 +358,19 @@ describe("Broker tab-complete events", () => {
     await expect(tracker.waitForTab({ tabId: 3, timeoutMs: 100 })).resolves.toMatchObject({ tabId: 3, url: "https://c.example/" });
   });
 
+  it("rejects waiters immediately when the extension disconnects", async () => {
+    const broker = await startBroker();
+    const extension = await connectExtension(broker);
+    const { agentPort } = brokerPorts(broker);
+    const client = new BrokerClient({ token, agentPort, connectionWaitMs: 500, requestTimeoutMs: 5000 });
+    clients.push(client);
+    await client.connect();
+    const pending = client.call("wait_tab", { tabId: 66, timeoutMs: 5000 });
+    await new Promise((resolve) => setTimeout(resolve, 50));
+    extension.close(1000, "gone");
+    await expect(pending).rejects.toMatchObject({ code: "EXTENSION_DISCONNECTED" });
+  });
+
   it("cleans up waiters when the waiting agent disconnects", async () => {
     const broker = await startBroker();
     const { agentPort } = brokerPorts(broker);

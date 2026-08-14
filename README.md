@@ -2,7 +2,7 @@
 
 [简体中文](README.zh-CN.md)
 
-Gives any local AI agent precise control over your live Firefox tabs and native tab groups — through an MCP server and an optional Agent Skill.
+Gives any local AI agent precise control over your live Firefox tabs and native tab groups — through a browser extension and a local MCP server, with an optional Agent Skill teaching the exact-match, verify-after-write workflow.
 
 ## Why this exists
 

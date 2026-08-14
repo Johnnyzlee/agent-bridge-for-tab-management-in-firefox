@@ -2,7 +2,7 @@
 
 [English](README.md)
 
-让任何本地 AI Agent 通过 MCP Server 和可选的 Agent Skill，精准操控你正在使用的 Firefox 标签页和原生标签组。
+让任何本地 AI Agent 通过一个浏览器扩展和本地 MCP Server 精准操控你正在使用的 Firefox 标签页和原生标签组；可选的 Agent Skill 会教会 Agent 精确匹配、写后验证的工作方式。
 
 ## 为什么需要它
 

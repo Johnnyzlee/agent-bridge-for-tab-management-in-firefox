@@ -42,11 +42,11 @@ The agent opens the pages without taking focus and keeps them together in one de
 
 ## Five-minute setup
 
-Version 0.3.0 includes a Mozilla-reviewed and production-signed XPI in the [GitHub Release](https://github.com/Johnnyzlee/agent-bridge-for-tab-management-in-firefox/releases/tag/v0.3.0). Because that artifact was reviewed before the project rebrand, Firefox displays it as **Local Tab Groups MCP Bridge**. Its signed Gecko ID is permanent; future branded updates will retain the same extension identity.
+Version 0.3.1 includes a Mozilla-reviewed and production-signed XPI in the [GitHub Release](https://github.com/Johnnyzlee/agent-bridge-for-tab-management-in-firefox/releases/tag/v0.3.1). It upgrades v0.3.0 in place under the same signed Gecko ID, preserving the extension's local settings while adopting the current **Tab Management Agent Bridge for Firefox** name.
 
 ### 1. Install the signed extension
 
-1. Download `local_tab_groups_mcp_bridge-0.3.0-mozilla-signed.xpi` from the v0.3.0 Release.
+1. Download `tab_management_agent_bridge_for_firefox-0.3.1-mozilla-signed.xpi` from the v0.3.1 Release.
 2. Open the XPI with Firefox and approve the installation prompt.
 3. The Mozilla-signed extension remains installed after Firefox restarts.
 
@@ -69,7 +69,7 @@ The `.local/` directory is ignored by Git. Treat its token as a local secret.
 
 ### 3. Configure the extension
 
-Open **Local Tab Groups MCP Bridge** preferences, keep port `8765`, paste the token from `.local/bridge-token.txt`, and select **Save and reconnect**.
+Open **Tab Management Agent Bridge for Firefox** preferences, keep port `8765`, paste the token from `.local/bridge-token.txt`, and select **Save and reconnect**.
 
 For source development only, you may instead open `about:debugging#/runtime/this-firefox`, select **Load Temporary Add-on**, and choose `dist/firefox-extension/manifest.json`. Firefox removes that temporary build after each restart; do not load it alongside the signed extension on the same port.
 
@@ -102,7 +102,7 @@ The equivalent generic configuration is:
 }
 ```
 
-Version 0.3.0 uses one bridge port, so only one stdio MCP client can own the connection at a time. Stop Codex before handing the same port to another client such as Hermes.
+Version 0.3.1 uses one bridge port, so only one stdio MCP client can own the connection at a time. Stop Codex before handing the same port to another client such as Hermes.
 
 ### 5. Optionally install the Agent Skill
 

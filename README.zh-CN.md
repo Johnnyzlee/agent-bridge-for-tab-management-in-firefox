@@ -40,11 +40,11 @@ Agent 会在不抢占当前焦点的情况下打开页面，并把它们整理�
 
 ## 5 分钟配置
 
-0.3.0 已通过 Mozilla 审核，正式签名 XPI 位于 [GitHub Release](https://github.com/Johnnyzlee/agent-bridge-for-tab-management-in-firefox/releases/tag/v0.3.0)。由于审核发生在项目改名之前，Firefox 中仍会显示旧名 **Local Tab Groups MCP Bridge**。它的 Gecko ID 已成为永久扩展身份，后续品牌更新仍会沿用同一 ID。
+0.3.1 已通过 Mozilla 审核，正式签名 XPI 位于 [GitHub Release](https://github.com/Johnnyzlee/agent-bridge-for-tab-management-in-firefox/releases/tag/v0.3.1)。它沿用 0.3.0 的签名 Gecko ID，因此会原地升级并保留本地设置，同时将扩展名称更新为 **Tab Management Agent Bridge for Firefox**。
 
 ### 1. 安装正式签名扩展
 
-1. 从 v0.3.0 Release 下载 `local_tab_groups_mcp_bridge-0.3.0-mozilla-signed.xpi`。
+1. 从 v0.3.1 Release 下载 `tab_management_agent_bridge_for_firefox-0.3.1-mozilla-signed.xpi`。
 2. 使用 Firefox 打开 XPI，并确认安装。
 3. 这是 Mozilla 签名版本，Firefox 重启后仍会保留。
 
@@ -67,7 +67,7 @@ npm run quickstart
 
 ### 3. 配置扩展
 
-打开 **Local Tab Groups MCP Bridge** 的“首选项”，保持端口 `8765`，粘贴 `.local/bridge-token.txt` 中的令牌，然后点击“保存并重连”。
+打开 **Tab Management Agent Bridge for Firefox** 的“首选项”，保持端口 `8765`，粘贴 `.local/bridge-token.txt` 中的令牌，然后点击“保存并重连”。
 
 只有开发源码时，才需要在 `about:debugging#/runtime/this-firefox` 中“临时载入附加组件”，并选择 `dist/firefox-extension/manifest.json`。临时版会在 Firefox 重启后消失，也不要让临时版和签名版同时占用同一端口。
 
@@ -100,7 +100,7 @@ PowerShell 用户运行 `.local/add-to-codex.ps1`。这些被 Git 忽略的本�
 }
 ```
 
-0.3.0 使用一个固定桥接端口，因此同一时间只能有一个 stdio MCP 客户端占用连接。若要从 Codex 切换到 Hermes，应先停止 Codex，再让 Hermes 启动同一 MCP Server。
+0.3.1 使用一个固定桥接端口，因此同一时间只能有一个 stdio MCP 客户端占用连接。若要从 Codex 切换到 Hermes，应先停止 Codex，再让 Hermes 启动同一 MCP Server。
 
 ### 5. 可选安装 Agent Skill
 

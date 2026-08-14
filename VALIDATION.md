@@ -15,10 +15,11 @@ Validated locally on 15 August 2026 with Node.js 22.17.0 and npm 10.9.2.
 | MCP Inspector `tools/list` | Passed; 7 tools discovered |
 | `quickstart` | Passed; generated protected local config and preserved its token on rerun |
 | Extension ZIP integrity | Passed for Tab Management Agent Bridge for Firefox |
-| Mozilla-signed XPI | Production AMO certificate chain present; version and stable Gecko ID verified |
+| Mozilla-signed v0.3.1 XPI | Production AMO certificate chain present; version, branded name, and stable Gecko ID verified |
+| Firefox in-place upgrade to v0.3.1 | Passed; the same add-on ID remained active and the installed XPI matched the downloaded signed artifact |
 | MCP package install | Passed; the installed CLI exposed all 7 tools |
 | Agent Skill ZIP | Passed `quick_validate.py` after clean extraction |
-| AMO source-package rebuild | Passed; the archived review source reproduced every unsigned file in the signed XPI |
+| AMO source-package rebuild | Passed; the archived v0.3.1 review source reproduced every unsigned business file in the signed XPI |
 | Live Firefox v0.3.0 | Passed; opened an HTTPS tab, created a group, and independently verified the exact URL and group ID |
 
 Discovered MCP tools:

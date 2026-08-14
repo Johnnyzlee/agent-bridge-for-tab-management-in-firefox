@@ -338,7 +338,7 @@ export function createMcpServer(bridge: BridgeLike): McpServer {
     "set_firefox_tab_muted",
     {
       description:
-        "Mute or unmute one exactly identified Firefox tab and verify the resulting state. Firefox may refuse to mute a playing tab without a user gesture.",
+        "Mute or unmute one exactly identified Firefox tab and verify the resulting state.",
       inputSchema: z.object({
         selector: selectorSchema,
         muted: z.boolean().describe("Whether the tab should be muted."),

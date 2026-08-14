@@ -40,6 +40,7 @@ interface TabCompleteRecord {
 
 interface TabWaiter {
   timer: NodeJS.Timeout;
+  agent?: WebSocket;
   respond(result: unknown): void;
 }
 
@@ -197,6 +198,7 @@ export class Broker implements BridgeLike {
       clearTimeout(authTimer);
       this.agents.delete(socket);
       this.rejectPendingForAgent(socket, new FirefoxTabsError("AGENT_DISCONNECTED", "The agent disconnected."));
+      this.rejectWaitersForAgent(socket);
     });
   }
 
@@ -334,7 +336,7 @@ export class Broker implements BridgeLike {
       this.tabWaiters.delete(tabId);
       respondError("TAB_LOAD_TIMEOUT", `Firefox did not report tab ${tabId} as loaded within the timeout.`);
     }, timeoutMs);
-    this.tabWaiters.set(tabId, { timer, respond });
+    this.tabWaiters.set(tabId, { timer, agent, respond });
   }
 
   async waitForTab(params: unknown): Promise<unknown> {
@@ -445,6 +447,14 @@ export class Broker implements BridgeLike {
       extensionPort: this.actualExtensionPort ?? this.extensionPort,
       agentPort: this.actualAgentPort ?? this.agentPort,
     };
+  }
+
+  private rejectWaitersForAgent(agent: WebSocket): void {
+    for (const [tabId, waiter] of this.tabWaiters) {
+      if (waiter.agent !== agent) continue;
+      clearTimeout(waiter.timer);
+      this.tabWaiters.delete(tabId);
+    }
   }
 
   private rejectPendingForAgent(agent: WebSocket, error: Error): void {

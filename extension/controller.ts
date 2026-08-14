@@ -773,10 +773,15 @@ export class FirefoxTabController {
     if (params.sessionId !== undefined && params.sessionId.length === 0) {
       throw new FirefoxTabsError("INVALID_SESSION_ID", "sessionId must not be empty.");
     }
-    const restored = await this.browserApi.sessions.restore(params.sessionId);
+    let restored: { tab?: BrowserTab; window?: { id?: number } };
+    try {
+      restored = await this.browserApi.sessions.restore(params.sessionId);
+    } catch {
+      throw new FirefoxTabsError("NOTHING_TO_RESTORE", "Firefox has no recently closed tab or window to restore.");
+    }
     const tab = restored.tab === undefined ? null : publicTab(restored.tab);
     const windowId = restored.window?.id ?? null;
-    if (params.sessionId === undefined && tab === null && windowId === null) {
+    if (tab === null && windowId === null) {
       throw new FirefoxTabsError("NOTHING_TO_RESTORE", "Firefox has no recently closed tab or window to restore.");
     }
     return { restoredTab: tab, restoredWindowId: windowId };

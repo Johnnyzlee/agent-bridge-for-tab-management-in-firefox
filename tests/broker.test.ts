@@ -305,4 +305,32 @@ describe("Broker tab-complete events", () => {
     );
     await expect(pending).resolves.toMatchObject({ tabId: 55 });
   });
+
+  it("cleans up waiters when the waiting agent disconnects", async () => {
+    const broker = await startBroker();
+    const { agentPort } = brokerPorts(broker);
+    const agent = await connectAgent(broker);
+    agent.send(JSON.stringify({ type: "request", id: "w-1", method: "wait_tab", params: { tabId: 321, timeoutMs: 5000 } }));
+    await new Promise((resolve) => setTimeout(resolve, 50));
+    agent.close(1000, "bye");
+    await new Promise((resolve) => setTimeout(resolve, 50));
+
+    const { extensionPort } = brokerPorts(broker);
+    const extension = new WebSocket(`ws://127.0.0.1:${extensionPort}`, { origin: "moz-extension://test-extension" });
+    await once(extension, "open");
+    extension.send(JSON.stringify({ type: "auth", protocolVersion: BRIDGE_PROTOCOL_VERSION, token }));
+    await once(extension, "message");
+    extension.send(
+      JSON.stringify({
+        type: "event",
+        event: "tab_complete",
+        data: { tabId: 321, url: "https://x.example/", title: "" },
+      }),
+    );
+    await new Promise((resolve) => setTimeout(resolve, 50));
+    const client = new BrokerClient({ token, agentPort, connectionWaitMs: 500, requestTimeoutMs: 2000 });
+    clients.push(client);
+    await client.connect();
+    await expect(client.call("wait_tab", { tabId: 321, timeoutMs: 1000 })).resolves.toMatchObject({ tabId: 321 });
+  });
 });

@@ -15,6 +15,8 @@ When an MCP client calls one of the provided tools, the extension may read and r
 
 The extension caches the local bridge port and the automatically provisioned shared token in Firefox extension storage so it can reconnect when the Native Messaging Host is temporarily unavailable. The Native Messaging Host reads the same port and token from the user-level bridge configuration file and sends them to the extension over Firefox's Native Messaging channel. Neither the host nor the extension sends this configuration anywhere else.
 
+While the bridge is connected, the extension also forwards tab load-completion events (`tabs.onUpdated` with status `complete`, carrying the tab ID, URL, and title) to the local MCP server. The server keeps only the most recent completion per tab ID in memory, for the event-driven `wait_for_firefox_tab` tool; nothing is written to disk, and the cache is cleared when the connection drops.
+
 The software does not read page bodies, form contents, browsing history outside the currently open tabs, cookies, passwords, or arbitrary page JavaScript.
 
 ## How data is used and transmitted

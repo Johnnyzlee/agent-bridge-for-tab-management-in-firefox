@@ -26,6 +26,20 @@ The MCP server provides the capability. The Agent Skill provides behavior guidan
 
 It does not read page bodies, inject content scripts, execute arbitrary page JavaScript, inspect cookies, or send browser data to a project-operated remote service.
 
+## A practical workflow: collect now, read later
+
+Suppose you come across useful articles, documentation, or research links while browsing a feed, chatting, or working on another device. You want to read them carefully later in desktop Firefox, but opening and organizing every page yourself would interrupt the current task and leave the browser full of loose tabs.
+
+Send the URLs to a connected agent such as Hermes instead:
+
+```text
+Open these URLs in Firefox in the background. Put every new tab in the exact
+group "Reading Queue", creating that group only if it does not exist, and
+verify the final tab and group IDs.
+```
+
+The agent opens the pages without taking focus and keeps them together in one dedicated group. You can continue what you are doing, then later sit down at the computer and work through the group as a focused reading queue. This turns Firefox tab groups into an inbox for the web: less clutter, less context switching, and less time spent manually organizing tabs.
+
 ## Five-minute setup
 
 Version 0.3.0 includes a Mozilla-reviewed and production-signed XPI in the [GitHub Release](https://github.com/Johnnyzlee/agent-bridge-for-tab-management-in-firefox/releases/tag/v0.3.0). Because that artifact was reviewed before the project rebrand, Firefox displays it as **Local Tab Groups MCP Bridge**. Its signed Gecko ID is permanent; future branded updates will retain the same extension identity.

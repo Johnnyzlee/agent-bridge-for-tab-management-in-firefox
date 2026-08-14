@@ -25,6 +25,19 @@ MCP Server 提供能力，Agent Skill 规定可靠的使用流程，浏览器扩
 
 它不读取网页正文，不注入 content script，不执行任意页面 JavaScript，不读取 Cookie，也不会把浏览器数据发送给本项目运营的远程服务。
 
+## 一个典型场景：先收集，后集中阅读
+
+平时刷信息流、聊天、查资料或使用另一台设备时，你可能不断遇到值得仔细看的文章和网页，希望稍后在电脑上的 Firefox 里集中阅读。如果当场逐个打开和整理，不仅会打断正在做的事，也很容易让浏览器堆满散乱的标签页。
+
+可以把这些 URL 直接发给已经连接本工具的 Agent，例如 Hermes：
+
+```text
+请在 Firefox 后台打开这些 URL，把所有新标签页放进标题完全一致的
+“待读”标签组；只有该组不存在时才创建，并在最后验证标签页和 group ID。
+```
+
+Agent 会在不抢占当前焦点的情况下打开页面，并把它们整理进一个专属标签组。你可以继续手头的事情，等坐到电脑前再集中处理这个阅读队列。这样就把 Firefox 标签组变成了“网页收件箱”：减少页面杂乱、手工整理和频繁切换注意力。
+
 ## 5 分钟配置
 
 0.3.0 已通过 Mozilla 审核，正式签名 XPI 位于 [GitHub Release](https://github.com/Johnnyzlee/agent-bridge-for-tab-management-in-firefox/releases/tag/v0.3.0)。由于审核发生在项目改名之前，Firefox 中仍会显示旧名 **Local Tab Groups MCP Bridge**。它的 Gecko ID 已成为永久扩展身份，后续品牌更新仍会沿用同一 ID。

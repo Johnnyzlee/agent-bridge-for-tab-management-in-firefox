@@ -28,9 +28,10 @@
 - [ ] Approve a final icon and add the required icon sizes to the manifest.
 - [ ] Capture clean options-page and tab-group screenshots.
 - [x] Publish the repository so the privacy policy, support page, source, and build instructions have stable URLs.
-- [ ] Recheck the manifest permissions and `browsingActivity` declaration against the current AMO form.
-- [ ] Submit v0.3.1 from the existing AMO add-on page.
-- [ ] Download and verify the production-signed v0.3.1 XPI.
+- [x] Recheck the manifest permissions and `browsingActivity` declaration against the current AMO form.
+- [x] Submit v0.3.1 from the existing AMO add-on page.
+- [x] Download and verify the production-signed v0.3.1 XPI.
+- [x] Confirm that v0.3.1 upgrades the existing Firefox installation under the same active add-on ID.
 - [ ] Test the signed build in a fresh Firefox profile before each announcement.
 
 ## Future distribution improvements

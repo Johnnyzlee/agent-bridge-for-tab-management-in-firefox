@@ -31,4 +31,4 @@ Open-tab metadata crosses from Firefox into the local MCP process and then to th
 
 ## Current limitation
 
-Version 0.3.0 uses a server-per-client architecture and one configurable bridge port. Only one MCP client can own that port at a time. A future shared daemon could multiplex multiple authenticated MCP clients while keeping the Firefox connection local.
+Version 0.3.1 uses a server-per-client architecture and one configurable bridge port. Only one MCP client can own that port at a time. A future shared daemon could multiplex multiple authenticated MCP clients while keeping the Firefox connection local.

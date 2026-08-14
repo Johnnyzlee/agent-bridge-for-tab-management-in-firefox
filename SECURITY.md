@@ -23,7 +23,7 @@ Until private reporting is enabled, keep the report private and wait for a repos
 
 The token protects the Firefox extension from unauthenticated local WebSocket clients; it does not sandbox or authenticate the MCP client itself. Any client configured with the token can request the exposed operations and receive the returned tab metadata. Only configure trusted local MCP clients, and review their own data-handling policies.
 
-Version 0.3.0 supports one stdio MCP server instance on one fixed bridge port. Competing instances fail to bind rather than sharing the connection. The bridge is not intended to be exposed through port forwarding, containers with public port mappings, or non-loopback proxies.
+Version 0.3.1 supports one stdio MCP server instance on one fixed bridge port. Competing instances fail to bind rather than sharing the connection. The bridge is not intended to be exposed through port forwarding, containers with public port mappings, or non-loopback proxies.
 
 ## Credential handling
 

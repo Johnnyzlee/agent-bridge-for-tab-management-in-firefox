@@ -1,6 +1,6 @@
 # AMO Reviewer Guide
 
-Version 0.3.1 is a branded update to the Mozilla-reviewed and production-signed v0.3.0 add-on. It changes the display name from `Local Tab Groups MCP Bridge` to `Tab Management Agent Bridge for Firefox` while preserving the permanent Gecko ID `firefox-tabs-mcp@local.invalid`. The permissions, local transport, and tab-management operation set are unchanged.
+Version 0.3.1 passed Mozilla review and was signed by the AMO production signing service. It changes the display name from `Local Tab Groups MCP Bridge` to `Tab Management Agent Bridge for Firefox` while preserving the permanent Gecko ID `firefox-tabs-mcp@local.invalid`. The permissions, local transport, and tab-management operation set are unchanged.
 
 ## Source and build environment
 

@@ -62,7 +62,7 @@ await writeFile(codexPowerShellPath, `${codexPowerShellCommand}\n`, { encoding: 
 await Promise.all([chmod(codexShellPath, 0o700), chmod(codexPowerShellPath, 0o600)]);
 
 console.log("\nAgent Bridge for Tab Management in Firefox is built.\n");
-console.log("1. Signed extension: download the Mozilla-signed XPI from the GitHub v0.3.0 release.");
+console.log("1. Signed extension: download the Mozilla-signed XPI from the GitHub v0.3.1 release.");
 console.log(`   Development manifest: ${path.join(repositoryRoot, "dist", "firefox-extension", "manifest.json")}`);
 console.log(`2. Paste the token from: ${tokenPath}`);
 console.log(`3. Generic MCP configuration: ${configPath}`);

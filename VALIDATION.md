@@ -34,4 +34,4 @@ The Inspector schema for tab selectors contains three closed alternatives (`tabI
 
 The live smoke test used the temporary extension only after explicit user confirmation. It opened the requested public URL, created the requested exact group title, and independently verified the final tab-to-group relationship. Session-specific tab, window, and group identifiers are intentionally omitted from this public report.
 
-GitHub Actions has not run because no remote repository has been created or pushed yet. The workflow was parsed locally and uses the same `npm run check` command validated above.
+The first public GitHub Actions run passed on both Node.js 20 and 22. The workflow uses the same `npm run check` command validated locally and current Node 24-based major versions of GitHub's official checkout and setup-node actions.

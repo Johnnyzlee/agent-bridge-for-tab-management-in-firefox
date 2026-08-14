@@ -13,11 +13,12 @@
 
 ## Before making GitHub public
 
-- [ ] Confirm the final owner and repository name: `Johnnyzlee/agent-bridge-for-tab-management-in-firefox`.
-- [ ] Create the public repository and push the reviewed initial commit.
-- [ ] Confirm that GitHub Actions passes on Node.js 20 and 22.
-- [ ] Enable private vulnerability reporting and review the published contact links.
-- [ ] Add repository description, topics, and an initial release containing the extension ZIP, MCP package, Agent Skill ZIP, and AMO source archive.
+- [x] Confirm the final owner and repository name: `Johnnyzlee/agent-bridge-for-tab-management-in-firefox`.
+- [x] Create the public repository and push the reviewed initial commit.
+- [x] Confirm that GitHub Actions passes on Node.js 20 and 22.
+- [x] Enable private vulnerability reporting and review the published contact links.
+- [x] Add the repository description and topics.
+- [ ] Create an initial release containing the extension ZIP, MCP package, Agent Skill ZIP, and AMO source archive.
 
 ## Before AMO submission
 

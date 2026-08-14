@@ -1,81 +1,26 @@
 # Release Checklist
 
-## Completed locally
+## Current: v0.5.7 (audible reporting)
 
-- [x] Neutral project and extension name.
-- [x] MPL-2.0 license metadata and full license text.
-- [x] English and Simplified Chinese setup documentation.
-- [x] Privacy, security, contribution, architecture, and changelog documents.
-- [x] GitHub CI plus issue and pull-request templates.
-- [x] Clean dependency audit, automated tests, Firefox lint, MCP tool discovery, and Agent Skill validation.
-- [x] Extension, MCP package, Agent Skill, and AMO source archives rebuilt and integrity-checked.
-- [x] AMO source package rebuilt in a clean temporary directory and compared with the expected extension output.
+- [x] Add `audible` to tab data (`list_firefox_tabs`, `get_active_firefox_tab`) so agents can find what is playing.
+- [ ] Submit v0.5.7 as an AMO unlisted version and verify the signed XPI.
+- [ ] Live-verify `audible` reporting and the `set_firefox_tab_muted` guidance in Firefox.
 
-## v0.5.5 development (pin/duplicate/color/batch/wait)
+## Released versions
 
-- [x] `pin_firefox_tab`, `unpin_firefox_tab`, `duplicate_firefox_tab`, `set_firefox_tab_group_color`.
-- [x] `move_firefox_tab_to_window`, `open_firefox_tabs_into_group` (rollback), `move_firefox_tabs_to_group`.
-- [x] `get_active_firefox_tab`, event-driven `wait_for_firefox_tab` (extension onUpdated push).
-- [x] `restore_firefox_tab` (sessions) and `set_firefox_tab_muted`.
-- [x] Tests (125 total).
-- [ ] Submit v0.5.5 as an AMO unlisted version and verify the signed XPI.
-
-## v0.5.3 development (list windows)
-
-- [x] `list_firefox_windows` with per-window tab/group counts and group sizes.
-- [x] `new_firefox_window` (background window, optional verified URL).
-- [x] Tests (108 total).
-- [ ] Submit v0.5.3 as an AMO unlisted version and verify the signed XPI.
-
-## v0.5.2 development (close / merge / rename / collapse / cross-window)
-
-- [x] `close_firefox_tabs` (batch by tabId) and `close_firefox_tab_group` (whole group + empty-group removal).
-- [x] `merge_firefox_tab_groups` (atomic, cross-window capable, empty source removed).
-- [x] Cross-window `move_firefox_tab_to_group` with explicit `windowId`.
-- [x] `rename_firefox_tab_group` and `set_firefox_tab_group_collapsed`.
-- [x] Tests for all of the above (104 total).
-- [ ] Submit v0.5.2 as an AMO unlisted version and verify the signed XPI.
-
-## v0.5.1 development (move tab to position)
-
-- [x] Add `move_firefox_tab` (same-window target index, `-1` = end, clamping, no-op, post-move verification).
-- [x] Reposition tests (exact match, index validation, ambiguity rejection).
-- [ ] Submit v0.5.1 as an AMO unlisted version and verify the signed XPI.
-
-## v0.5.0 development (shared broker)
-
-- [x] Add the shared broker: first server instance becomes the broker (extension port + agent port 8767), later instances connect as authenticated clients.
-- [x] Multi-agent routing tests (response correlation, disconnect propagation, per-agent isolation, unauthenticated rejection).
-- [x] `FIREFOX_TABS_BRIDGE_BROKER_PORT` override and doctor broker-port check.
-- [ ] Live multi-agent verification with real Firefox (two MCP clients against one broker).
-- [ ] Submit v0.5.0 as an AMO unlisted version and verify the signed XPI.
-
-## v0.4.0 development (automatic pairing)
-
-- [x] Remove the manual token entry from the extension options page and the generated token helpers.
-- [x] Add a user-level bridge configuration directory shared by the MCP server, the CLI, and the Native Messaging Host.
-- [x] Add `nativeMessaging` permission and automatic configuration retrieval in the extension.
-- [x] Implement the Native Messaging Host (framing, message validation, registration authorization).
-- [x] Implement `setup`, `doctor`, and `uninstall` (with `--purge`) CLI subcommands.
-- [x] Migrate the v0.3.1 `.local/bridge-token.txt` token on first setup and preserve tokens on rerun.
-- [x] Keep `FIREFOX_TABS_BRIDGE_TOKEN` / `FIREFOX_TABS_BRIDGE_PORT` as explicit overrides; generate token-free MCP client configuration.
-- [x] Automated tests for config, migration, host framing/validation, CLI output hygiene, and cross-platform path logic.
-- [ ] Review the signed Gecko ID and all new permissions (`nativeMessaging`) on the AMO submission form.
-- [ ] Test the signed build in a fresh Firefox profile, including automatic pairing and upgrade from v0.3.1.
-- [ ] Capture clean options-page screenshots (no token input).
-- [ ] Submit v0.4.0 from the existing AMO add-on page under the same Gecko ID.
-- [ ] Download and verify the production-signed v0.4.0 XPI, then update the README stable link and VALIDATION report.
-- [ ] Confirm the Windows registration flow on a real Windows machine (implemented and unit-tested, not yet hardware-verified).
-
-## Before making a v0.4.0 GitHub release
-
-- [ ] Confirm that GitHub Actions passes on Node.js 20 and 22.
-- [ ] Update `docs/amo-reviewer-guide.md` if AMO review revealed changes.
-- [ ] Create the release with the Mozilla-signed XPI, MCP package, Agent Skill ZIP, and matching source archives.
-- [ ] Verify the npm package contains the built Native Messaging Host and CLI (`npm pack --dry-run`).
+- [x] v0.5.6 — fix pin/unpin/duplicate dispatch + `MUTE_REQUIRES_USER_GESTURE` mapping (live-tested).
+- [x] v0.5.5 — 26-tool set: pin, duplicate, color, batch open/move, active tab, event-driven wait.
+- [x] v0.5.4 — `list_firefox_windows`, `new_firefox_window`, `scripts/upgrade.sh`.
+- [x] v0.5.3 — skipped on AMO (version locked); features shipped in v0.5.4.
+- [x] v0.5.2 — close tabs/group, atomic merge, cross-window moves, rename, collapse.
+- [x] v0.5.1 — `move_firefox_tab` (reposition).
+- [x] v0.5.0 — shared broker for multiple agents.
+- [x] v0.4.1 — English options page.
+- [x] v0.4.0 — automatic pairing via Native Messaging.
+- [x] v0.3.1 — Mozilla-reviewed public release (archived).
 
 ## Future distribution improvements
 
 - [ ] Decide whether to publish the server as an npm CLI package for one-command MCP installation.
-- [ ] Replace the single-client fixed-port design with an optional shared local daemon/broker.
-- [ ] Add an automated tagged-release workflow after a manual v0.4.0 release is verified.
+- [ ] Add an automated tagged-release workflow after a manual release cycle is proven.
+- [ ] Confirm the Windows registration flow on a real Windows machine (implemented and unit-tested, not hardware-verified).

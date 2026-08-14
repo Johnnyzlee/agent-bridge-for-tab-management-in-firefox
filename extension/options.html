@@ -9,28 +9,20 @@
   <body>
     <main>
       <h1>Tab Management Agent Bridge for Firefox</h1>
-      <p>这里的端口和令牌必须与 MCP Server 的环境变量完全一致。</p>
+      <p>扩展会自动从本机安装的桥接组件获取配置，不需要手动输入或同步令牌。</p>
 
-      <form id="settings">
-        <label>
-          本地端口
-          <input id="port" name="port" type="number" min="1" max="65535" required />
-        </label>
-        <label>
-          共享令牌
-          <input id="token" name="token" type="password" minlength="16" autocomplete="off" required />
-        </label>
-        <div class="buttons">
-          <button type="button" id="generate">生成令牌</button>
-          <button type="submit">保存并重连</button>
-        </div>
-      </form>
-
-      <p id="saved" role="status"></p>
       <section>
         <h2>连接状态</h2>
-        <pre id="status">正在读取……</pre>
-        <button type="button" id="refresh">刷新状态</button>
+        <dl>
+          <div><dt>自动配置</dt><dd id="auto-config">读取中……</dd></div>
+          <div><dt>MCP Server 连接</dt><dd id="state">读取中……</dd></div>
+          <div><dt>本地端口</dt><dd id="port">—</dd></div>
+          <div><dt>最近错误</dt><dd id="error">—</dd></div>
+        </dl>
+        <div class="buttons">
+          <button type="button" id="reconnect">重新连接</button>
+          <button type="button" id="redetect">修复 / 重新检测本地安装</button>
+        </div>
       </section>
     </main>
     <script src="options.js"></script>

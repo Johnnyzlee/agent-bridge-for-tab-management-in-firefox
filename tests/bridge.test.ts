@@ -11,12 +11,13 @@ afterEach(async () => {
   await Promise.all(bridges.splice(0).map((bridge) => bridge.stop()));
 });
 
-async function startBridge(options: { requestTimeoutMs?: number } = {}): Promise<FirefoxBridge> {
+async function startBridge(options: { requestTimeoutMs?: number; authTimeoutMs?: number } = {}): Promise<FirefoxBridge> {
   const bridge = new FirefoxBridge({
     token,
     port: 0,
     connectionWaitMs: 100,
     requestTimeoutMs: options.requestTimeoutMs ?? 500,
+    authTimeoutMs: options.authTimeoutMs ?? 5000,
   });
   bridges.push(bridge);
   await bridge.start();
@@ -59,6 +60,17 @@ describe("FirefoxBridge", () => {
   it("rejects an incorrect token", async () => {
     const bridge = await startBridge();
     const socket = await connectExtension(bridge, "incorrect-token-with-enough-length");
+    const [code] = (await once(socket, "close")) as [number, Buffer];
+    expect(code).toBe(1008);
+    expect(bridge.getStatus().connected).toBe(false);
+  });
+
+  it("closes connections that never authenticate", async () => {
+    const bridge = await startBridge({ authTimeoutMs: 50 });
+    const port = bridge.getStatus().port!;
+    const socket = new WebSocket(`ws://127.0.0.1:${port}`, { origin: "moz-extension://test-extension" });
+    await once(socket, "open");
+    socket.send(JSON.stringify({ type: "list_tabs" }));
     const [code] = (await once(socket, "close")) as [number, Buffer];
     expect(code).toBe(1008);
     expect(bridge.getStatus().connected).toBe(false);

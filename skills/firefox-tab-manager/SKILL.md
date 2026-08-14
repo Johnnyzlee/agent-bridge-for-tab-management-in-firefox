@@ -20,7 +20,7 @@ Do not open a guessed URL, a privileged Firefox page, a local file, or a non-HTT
 
 ## Move a tab into a group
 
-1. Call `get_firefox_bridge_status` when connection state is unknown. If disconnected, report the status and ask the user to open the extension options and check its port and token.
+1. Call `get_firefox_bridge_status` when connection state is unknown. If disconnected, report the status and ask the user to run `npm run setup` and press “修复 / 重新检测本地安装” in the extension options; do not ask for a token.
 2. Identify the tab with exactly one selector:
    - Use the complete URL when the user supplies a URL.
    - Use the complete title only when the user supplies a title and it is exact.

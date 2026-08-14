@@ -22,6 +22,7 @@ export interface FirefoxBridgeOptions {
   host?: string;
   requestTimeoutMs?: number;
   connectionWaitMs?: number;
+  authTimeoutMs?: number;
 }
 
 function tokensEqual(actual: string, expected: string): boolean {
@@ -35,6 +36,7 @@ export class FirefoxBridge {
   private readonly requestedPort: number;
   private readonly requestTimeoutMs: number;
   private readonly connectionWaitMs: number;
+  private readonly authTimeoutMs: number;
   private readonly events = new EventEmitter();
   private readonly pending = new Map<string, PendingRequest>();
   private server: WebSocketServer | undefined;
@@ -52,6 +54,7 @@ export class FirefoxBridge {
     this.requestedPort = options.port ?? 8765;
     this.requestTimeoutMs = options.requestTimeoutMs ?? 10_000;
     this.connectionWaitMs = options.connectionWaitMs ?? 5_000;
+    this.authTimeoutMs = options.authTimeoutMs ?? 5_000;
   }
 
   async start(): Promise<void> {
@@ -88,7 +91,7 @@ export class FirefoxBridge {
     }
 
     let authenticated = false;
-    const authTimer = setTimeout(() => socket.close(1008, "Authentication timed out"), 5_000);
+    const authTimer = setTimeout(() => socket.close(1008, "Authentication timed out"), this.authTimeoutMs);
 
     socket.on("message", (data) => {
       let message: unknown;

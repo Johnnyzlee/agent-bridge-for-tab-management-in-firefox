@@ -2,9 +2,17 @@
 
 [English](README.md)
 
-让任何你信任的 AI Agent 直接管理你正在使用的 Firefox 标签页和标签组——打开网页、建组、移组、取消分组，无需复制粘贴令牌，也不用碰浏览器界面。
+让任何本地 AI Agent 通过 MCP Server 和可选的 Agent Skill，精准操控你正在使用的 Firefox 标签页和原生标签组。
 
-完全本地运行。无账号、无云端、无遥测。
+## 为什么需要它
+
+AI Agent 已经可以调试 Firefox：Mozilla 官方的 [Firefox DevTools MCP](https://github.com/mozilla/firefox-devtools-mcp) 提供控制台、网络和 DOM 能力。但官方生态里**没有任何东西让 Agent 真正管理标签页和原生标签组**——没有 MCP 接口可以打开页面、把链接归档进"待读"组、在组与窗口之间移动标签页、或在任务结束后清理。Agent 只能退而求其次：脆弱的坐标点击，或者让用户手动操作。
+
+本项目用一个轻量 Firefox 扩展 + 本地 MCP Server 补上这块空白，把 Firefox 原生的 `tabs` 和 `tabGroups` API 封装成一套"写后验证"的工具接口：
+
+- 扩展通过 loopback 直接与 Firefox 通信——无账号、无云端、无遥测；
+- MCP Server 把工具暴露给任何支持 stdio 的 Agent（Claude Code、Codex、Hermes、OpenClaw、OpenCode、WorkBuddy）；
+- 可选的 Agent Skill 教会 Agent 精确匹配、写后验证的工作方式。
 
 ## 能做什么
 

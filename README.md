@@ -2,9 +2,17 @@
 
 [简体中文](README.zh-CN.md)
 
-Let any AI agent you trust manage your live Firefox tabs and tab groups — open pages, group them, ungroup them — without copy-pasting tokens or touching the browser UI.
+Gives any local AI agent precise control over your live Firefox tabs and native tab groups — through an MCP server and an optional Agent Skill.
 
-Everything runs locally. No accounts, no cloud, no telemetry.
+## Why this exists
+
+AI agents can already debug Firefox: Mozilla's official [Firefox DevTools MCP](https://github.com/mozilla/firefox-devtools-mcp) exposes the console, network, and DOM. But nothing in the official ecosystem lets an agent actually **manage** tabs or native tab groups — there is no MCP interface for opening pages, filing links into a "Reading Queue" group, moving tabs between groups or windows, or cleaning up after a task. Agents are left with fragile coordinate-clicking or asking the user to do it by hand.
+
+This project closes that gap with a small Firefox extension and a local MCP server that wrap Firefox's own `tabs` and `tabGroups` APIs into a verified tool surface:
+
+- the extension talks to Firefox directly over loopback — no accounts, no cloud, no telemetry;
+- the MCP server exposes the tools to any stdio-compatible agent (Claude Code, Codex, Hermes, OpenClaw, OpenCode, WorkBuddy);
+- the optional Agent Skill teaches agents the exact-match, verify-after-write workflow.
 
 ## What it does
 

@@ -11,7 +11,7 @@ Everything runs locally. No accounts, no cloud, no telemetry.
 - Lists your live tabs and tab groups.
 - Opens `http`/`https` pages in the background (no focus stealing).
 - Creates, moves, and removes tab groups with exact names.
-- Pins, unpins, and duplicates tabs; moves them across windows.
+- Pins, unpins, duplicates, and mutes tabs; restores accidentally closed tabs; moves them across windows.
 - Opens batches of URLs into a group in one atomic step; merges, renames, colors, and collapses groups.
 - Knows when a page finished loading (event-driven) and which tab is active.
 - Refuses ambiguous matches, duplicate group names, cross-window grouping, and unpinning without your OK.

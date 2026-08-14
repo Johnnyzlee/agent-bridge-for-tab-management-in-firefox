@@ -19,6 +19,8 @@ export type BridgeMethod =
   | "open_tabs_into_group"
   | "wait_tab"
   | "get_active_tab"
+  | "restore_tab"
+  | "set_tab_muted"
   | "close_tabs"
   | "close_tab_group"
   | "merge_tab_groups"
@@ -101,6 +103,15 @@ export interface OpenTabsIntoGroupParams {
   windowId?: number;
   collapsed?: boolean;
   allowUnpin?: boolean;
+}
+
+export interface RestoreTabParams {
+  sessionId?: string;
+}
+
+export interface SetTabMutedParams {
+  selector: TabSelector;
+  muted: boolean;
 }
 
 export interface WaitTabParams {

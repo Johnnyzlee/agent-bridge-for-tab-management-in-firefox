@@ -7,9 +7,10 @@ export interface HostState {
   configError: string | null;
   registrationOk: boolean;
   registrationReason: string;
+  callerAuthorized: boolean;
 }
 
-export async function loadHostState(platform: PlatformInfo): Promise<HostState> {
+export async function loadHostState(platform: PlatformInfo, callerAuthorized = true): Promise<HostState> {
   let config: BridgeConfig | null = null;
   let configError: string | null = null;
   try {
@@ -23,6 +24,7 @@ export async function loadHostState(platform: PlatformInfo): Promise<HostState> 
     configError,
     registrationOk: registration.ok,
     registrationReason: registration.reason,
+    callerAuthorized,
   };
 }
 
@@ -56,6 +58,12 @@ export function handleHostMessage(raw: unknown, state: HostState): Record<string
         registrationOk: state.registrationOk,
       };
     case "get_bridge_config":
+      if (!state.callerAuthorized) {
+        return errorResponse(
+          "UNAUTHORIZED_EXTENSION",
+          `The native host may only serve the bridge configuration to ${EXTENSION_ID}.`,
+        );
+      }
       if (!state.registrationOk) {
         return errorResponse(
           "HOST_REGISTRATION_INVALID",

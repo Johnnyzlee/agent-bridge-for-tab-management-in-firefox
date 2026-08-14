@@ -33,7 +33,7 @@ v0.4.0 removes the manual token entry from the options page and adds the `native
 2. The extension sends `{ "type": "get_bridge_config", "protocolVersion": 1 }` over Native Messaging and validates the response type, protocol version, port, and token length before using it.
 3. The host refuses to serve the configuration unless its own registration authorizes exactly the expected extension ID, and it never writes the token to logs.
 
-The host is a minimal stdio process that reads length-prefixed JSON from stdin and writes one framed JSON response per request. It accepts only `ping`/`get_status` and `get_bridge_config`, rejects unknown message types and unsupported protocol versions, and does not connect to any remote service.
+The host is a minimal stdio process that reads length-prefixed JSON from stdin and writes one framed JSON response per request. It accepts only `ping`/`get_status` and `get_bridge_config`, rejects unknown message types and unsupported protocol versions, verifies both the registered manifest's `allowed_extensions` and the calling extension's ID (a command-line argument Firefox passes since Firefox 55), and does not connect to any remote service. The registered manifest `path` points to a generated launcher script (`firefox_tabs_agent_bridge.sh`/`.cmd`) that executes the absolute Node.js binary and the bundled host, because macOS runs native apps in a restricted environment where `node` is not on `PATH`.
 
 ## Functional review
 

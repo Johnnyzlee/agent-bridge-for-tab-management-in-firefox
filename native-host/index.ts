@@ -1,9 +1,11 @@
 #!/usr/bin/env node
-import { platformForCLI } from "../shared/config.js";
+import { EXTENSION_ID, platformForCLI } from "../shared/config.js";
 import { MAX_NATIVE_MESSAGE_BYTES, readFramedMessage, writeFramedMessage } from "./framing.js";
 import { handleHostMessage, loadHostState } from "./host.js";
 
-const statePromise = loadHostState(platformForCLI());
+const callerExtensionId = process.argv[3];
+const callerAuthorized = callerExtensionId === undefined || callerExtensionId === EXTENSION_ID;
+const statePromise = loadHostState(platformForCLI(), callerAuthorized);
 
 process.stdin.on("error", () => {
   process.exit(1);

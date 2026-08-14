@@ -31,6 +31,7 @@ function validState(token = "test-token-".padEnd(32, "0")): HostState {
     configError: null,
     registrationOk: true,
     registrationReason: "ok",
+    callerAuthorized: true,
   };
 }
 
@@ -130,10 +131,24 @@ describe("native host message handling", () => {
       configError: "CONFIG_NOT_FOUND",
       registrationOk: true,
       registrationReason: "ok",
+      callerAuthorized: true,
     };
     const response = handleHostMessage({ type: "get_bridge_config", protocolVersion: BRIDGE_PROTOCOL_VERSION }, state);
     expect(errorResponseOf(response).code).toBe("CONFIG_NOT_FOUND");
     expect(JSON.stringify(response)).not.toContain("token");
+  });
+
+  it("refuses to serve the config to an unauthorized calling extension", () => {
+    const state: HostState = {
+      config: { protocolVersion: BRIDGE_PROTOCOL_VERSION, port: 8765, token: "x".repeat(32) },
+      configError: null,
+      registrationOk: true,
+      registrationReason: "ok",
+      callerAuthorized: false,
+    };
+    const response = handleHostMessage({ type: "get_bridge_config", protocolVersion: BRIDGE_PROTOCOL_VERSION }, state);
+    expect(errorResponseOf(response).code).toBe("UNAUTHORIZED_EXTENSION");
+    expect(JSON.stringify(response)).not.toContain(state.config!.token);
   });
 
   it("refuses to serve the config when the registration does not authorize the expected extension", () => {
@@ -142,6 +157,7 @@ describe("native host message handling", () => {
       configError: null,
       registrationOk: false,
       registrationReason: "bad registration",
+      callerAuthorized: true,
     };
     const response = handleHostMessage({ type: "get_bridge_config", protocolVersion: BRIDGE_PROTOCOL_VERSION }, state);
     expect(errorResponseOf(response).code).toBe("HOST_REGISTRATION_INVALID");

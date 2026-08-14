@@ -33,9 +33,11 @@ The extension does not read this file directly; it receives the same values from
 
 ## Native Messaging Host
 
-The host (`native-host/`) is a minimal length-prefixed JSON message loop. Firefox specifies the 4-byte length prefix in native byte order; all supported platforms are little-endian. Messages are capped at 1 MiB. The host accepts `ping`/`get_status` and `get_bridge_config`, validates the message type and protocol version, and replies with typed `status`, `bridge_config`, or `error` messages. `get_bridge_config` is served only when the host's own registered manifest authorizes exactly the expected extension ID. Error messages never include the token.
+The host (`native-host/`) is a minimal length-prefixed JSON message loop. Firefox specifies the 4-byte length prefix in native byte order; all supported platforms are little-endian. Messages are capped at 1 MiB. The host accepts `ping`/`get_status` and `get_bridge_config`, validates the message type and protocol version, and replies with typed `status`, `bridge_config`, or `error` messages. `get_bridge_config` is served only when the host's own registered manifest authorizes exactly the expected extension ID, and the calling extension's ID (which Firefox passes as a command-line argument since Firefox 55) matches the expected ID. Error messages never include the token.
 
-The host manifest is registered per platform: `~/Library/Application Support/Mozilla/NativeMessagingHosts/` on macOS, `~/.mozilla/native-messaging-hosts/` on Linux, and the user-level `HKCU\Software\Mozilla\NativeMessagingHosts` registry key (with a `.cmd` launcher) on Windows. The Windows path logic is implemented and unit-tested but has not been exercised on a real Windows machine.
+The manifest `path` points to a small launcher script that `setup` generates with absolute paths: `native-host/firefox_tabs_agent_bridge.sh` on macOS/Linux (executes the absolute Node.js binary and the bundled host) and `native-host/firefox_tabs_agent_bridge.cmd` on Windows. This is required because Firefox spawns native apps with a restricted environment on macOS, where a `#!/usr/bin/env node` host would not find Node.js on `PATH`.
+
+The host manifest is registered per platform: `~/Library/Application Support/Mozilla/NativeMessagingHosts/` on macOS, `~/.mozilla/native-messaging-hosts/` on Linux, and the user-level `HKCU\Software\Mozilla\NativeMessagingHosts` registry key on Windows. The Windows path logic is implemented and unit-tested but has not been exercised on a real Windows machine.
 
 ## Protocol
 

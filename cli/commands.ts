@@ -169,12 +169,12 @@ async function registerNativeHost(
   root: string,
   run: CommandRunner,
 ): Promise<string> {
+  const wrapperDir = path.join(root, "native-host");
+  await mkdir(wrapperDir, { recursive: true });
   if (platform.platform === "win32") {
-    const wrapperDir = path.join(root, "native-host");
-    await mkdir(wrapperDir, { recursive: true });
     const wrapperPath = path.join(wrapperDir, `${NATIVE_HOST_NAME}.cmd`);
     const nodeBinary = process.execPath.replaceAll('"', '""');
-    await writeFile(wrapperPath, `@echo off\r\n"${nodeBinary}" "${hostPath}"\r\n`, { encoding: "utf8" });
+    await writeFile(wrapperPath, `@echo off\r\n"${nodeBinary}" "${hostPath}" %*\r\n`, { encoding: "utf8" });
     const manifestPath = path.join(root, "native-manifests");
     await mkdir(manifestPath, { recursive: true });
     const manifestFile = path.join(manifestPath, `${NATIVE_HOST_NAME}.json`);
@@ -194,11 +194,21 @@ async function registerNativeHost(
     return manifestFile;
   }
 
+  const wrapperPath = path.join(wrapperDir, `${NATIVE_HOST_NAME}.sh`);
+  const nodeBinary = process.execPath.replaceAll("'", `'"'"'`);
+  await atomicWriteFile(
+    wrapperPath,
+    `#!/bin/sh\nexec '${nodeBinary}' '${hostPath}' "$@"\n`,
+    0o700,
+    platform,
+  );
+  await chmod(wrapperPath, 0o700);
+
   const manifestPath = nativeHostManifestPath(platform);
   await mkdir(path.dirname(manifestPath), { recursive: true });
   await atomicWriteFile(
     manifestPath,
-    `${JSON.stringify(nativeHostManifest(hostPath), null, 2)}\n`,
+    `${JSON.stringify(nativeHostManifest(wrapperPath), null, 2)}\n`,
     0o600,
     platform,
   );

@@ -143,9 +143,16 @@ describe("setup", () => {
     expect(manifest.name).toBe(NATIVE_HOST_NAME);
     expect(manifest.type).toBe("stdio");
     expect(manifest.allowed_extensions).toEqual([EXTENSION_ID]);
-    expect(path.isAbsolute(manifest.path as string)).toBe(true);
-    const mode = (await stat(manifestPath)).mode & 0o777;
-    expect(mode).toBe(0o600);
+    const launcherPath = manifest.path as string;
+    expect(path.isAbsolute(launcherPath)).toBe(true);
+    expect(launcherPath.endsWith(".sh")).toBe(true);
+    const mode = (await stat(launcherPath)).mode & 0o777;
+    expect(mode).toBe(0o700);
+    const launcher = await readFile(launcherPath, "utf8");
+    expect(launcher).toContain(path.join(f.packageRoot, "dist", "native-host", "index.js"));
+    expect(launcher).toContain("exec");
+    const manifestMode = (await stat(manifestPath)).mode & 0o777;
+    expect(manifestMode).toBe(0o600);
   });
 
   it("registers on Linux under ~/.mozilla/native-messaging-hosts", async () => {
@@ -154,6 +161,7 @@ describe("setup", () => {
     const manifestPath = path.join(f.home, ".mozilla", "native-messaging-hosts", `${NATIVE_HOST_NAME}.json`);
     const manifest = JSON.parse(await readFile(manifestPath, "utf8")) as Record<string, unknown>;
     expect(manifest.allowed_extensions).toEqual([EXTENSION_ID]);
+    expect((manifest.path as string).endsWith(".sh")).toBe(true);
   });
 
   it("registers on Windows through the user-level registry and a .cmd wrapper", async () => {

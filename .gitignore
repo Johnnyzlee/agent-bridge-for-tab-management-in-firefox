@@ -1,0 +1,17 @@
+node_modules/
+dist/
+coverage/
+packages/*.zip
+packages/*.xpi
+packages/*.tgz
+web-ext-artifacts/
+.local/
+
+.env
+.env.*
+!.env.example
+
+.DS_Store
+npm-debug.log*
+.vscode/
+.idea/

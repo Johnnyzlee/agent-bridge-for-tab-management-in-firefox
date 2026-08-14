@@ -1,0 +1,25 @@
+name: Feature request
+description: Propose a focused capability or safety improvement.
+title: "[Feature]: "
+labels: [enhancement]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: What workflow is difficult today?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed behavior
+    validations:
+      required: true
+  - type: textarea
+    id: security
+    attributes:
+      label: Privacy and security impact
+      description: Describe any new browser data, permission, network access, or write operation.
+    validations:
+      required: true

@@ -1,0 +1,12 @@
+interface:
+  display_name: "Firefox Tab Manager"
+  short_description: "Open, find, and organize Firefox tabs precisely"
+  default_prompt: "Use $firefox-tab-manager to open or find a Firefox tab, place it in an existing or newly requested group, and verify the result."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "firefox-tabs"
+      description: "Local MCP tools backed by the Tab Management Agent Bridge for Firefox extension"
+      transport: "stdio"
+policy:
+  allow_implicit_invocation: true

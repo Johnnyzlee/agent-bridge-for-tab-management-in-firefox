@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Tab Management Agent Bridge for Firefox</title>
+    <link rel="stylesheet" href="options.css" />
+  </head>
+  <body>
+    <main>
+      <h1>Tab Management Agent Bridge for Firefox</h1>
+      <p>这里的端口和令牌必须与 MCP Server 的环境变量完全一致。</p>
+
+      <form id="settings">
+        <label>
+          本地端口
+          <input id="port" name="port" type="number" min="1" max="65535" required />
+        </label>
+        <label>
+          共享令牌
+          <input id="token" name="token" type="password" minlength="16" autocomplete="off" required />
+        </label>
+        <div class="buttons">
+          <button type="button" id="generate">生成令牌</button>
+          <button type="submit">保存并重连</button>
+        </div>
+      </form>
+
+      <p id="saved" role="status"></p>
+      <section>
+        <h2>连接状态</h2>
+        <pre id="status">正在读取……</pre>
+        <button type="button" id="refresh">刷新状态</button>
+      </section>
+    </main>
+    <script src="options.js"></script>
+  </body>
+</html>

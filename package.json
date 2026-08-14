@@ -1,0 +1,57 @@
+{
+  "name": "firefox-tab-management-agent-mcp",
+  "version": "0.3.0",
+  "private": true,
+  "type": "module",
+  "bin": {
+    "firefox-tab-management-agent-mcp": "dist/server/index.js"
+  },
+  "files": [
+    "dist/server/**",
+    "README.md",
+    "LICENSE"
+  ],
+  "description": "The local MCP server in Agent Bridge for Tab Management in Firefox.",
+  "license": "MPL-2.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Johnnyzlee/agent-bridge-for-tab-management-in-firefox.git"
+  },
+  "homepage": "https://github.com/Johnnyzlee/agent-bridge-for-tab-management-in-firefox#readme",
+  "bugs": {
+    "url": "https://github.com/Johnnyzlee/agent-bridge-for-tab-management-in-firefox/issues"
+  },
+  "keywords": [
+    "firefox",
+    "mcp",
+    "model-context-protocol",
+    "tabs",
+    "tab-groups",
+    "webextension"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "quickstart": "npm ci && npm run build && node scripts/generate-local-config.mjs",
+    "prepack": "npm run build",
+    "lint:extension": "npx --yes web-ext@10.6.0 lint --source-dir dist/firefox-extension --warnings-as-errors",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "check": "npm run typecheck && npm test && npm run build && npm run lint:extension",
+    "start": "node dist/server/index.js"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/server": "^2.0.0",
+    "ws": "^8.21.0",
+    "zod": "^4.4.0"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "@types/ws": "^8.18.0",
+    "esbuild": "^0.28.0",
+    "typescript": "^5.9.0",
+    "vitest": "^4.1.0"
+  }
+}
